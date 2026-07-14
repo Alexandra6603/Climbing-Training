@@ -6,10 +6,12 @@ export const useIntervalTimer = (config: TimerConfig) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [currentCycle, setCurrentCycle] = useState<number>(1);
   const [currentSet, setCurrentSet] = useState<number>(1);
+  const [isPaused, setIsPaused] = useState(false);
   const totalCycles = Math.max(1, config.cycles);
   const totalSets = Math.max(1, config.sets);
 
   const start = () => {
+    setIsPaused(false);
     setCurrentCycle(1);
     setCurrentSet(1);
 
@@ -23,71 +25,75 @@ export const useIntervalTimer = (config: TimerConfig) => {
   };
 
   useEffect(() => {
-    if (phase === "idle" || phase === "finished") return;
+    if (phase === "idle" || phase === "finished" || isPaused) return;
   
     const interval = setInterval(() => {
       setTimeLeft((prev) => Math.max(prev - 1, 0));
     }, 1000);
   
     return () => clearInterval(interval);
-  }, [phase]);
+  }, [phase, isPaused]);
 
   useEffect(() => {
     if (timeLeft !== 0) return;
-    if (phase === "idle" || phase === "finished") return;
-  
-    if (phase === "prep") {
-      setPhase("work");
-      setTimeLeft(config.work);
-      return;
-    }
-  
-    if (phase === "work") {
-      const isLastCycle = currentCycle >= totalCycles;
-      const isLastSet = currentSet >= totalSets;
-  
-      if (!isLastCycle) {
-        if (config.rest > 0) {
-          setPhase("rest");
-          setTimeLeft(config.rest);
-        } else {
-          setCurrentCycle((c) => c + 1);
-          setPhase("work");
-          setTimeLeft(config.work);
-        }
+    if (phase === "idle" || phase === "finished" || isPaused) return;
+
+    const timeout = window.setTimeout(() => {
+      if (phase === "prep") {
+        setPhase("work");
+        setTimeLeft(config.work);
         return;
       }
-  
-      if (!isLastSet) {
-        if (config.restBetweenSets > 0) {
-          setPhase("restBetweenSets");
-          setTimeLeft(config.restBetweenSets);
-        } else {
-          setCurrentSet((s) => s + 1);
-          setCurrentCycle(1);
-          setPhase("work");
-          setTimeLeft(config.work);
+
+      if (phase === "work") {
+        const isLastCycle = currentCycle >= totalCycles;
+        const isLastSet = currentSet >= totalSets;
+
+        if (!isLastCycle) {
+          if (config.rest > 0) {
+            setPhase("rest");
+            setTimeLeft(config.rest);
+          } else {
+            setCurrentCycle((c) => c + 1);
+            setPhase("work");
+            setTimeLeft(config.work);
+          }
+          return;
         }
+
+        if (!isLastSet) {
+          if (config.restBetweenSets > 0) {
+            setPhase("restBetweenSets");
+            setTimeLeft(config.restBetweenSets);
+          } else {
+            setCurrentSet((s) => s + 1);
+            setCurrentCycle(1);
+            setPhase("work");
+            setTimeLeft(config.work);
+          }
+          return;
+        }
+
+        setPhase("finished");
         return;
       }
-  
-      setPhase("finished");
-      return;
-    }
-  
-    if (phase === "rest") {
-      setCurrentCycle((c) => c + 1);
-      setPhase("work");
-      setTimeLeft(config.work);
-      return;
-    }
-  
-    if (phase === "restBetweenSets") {
-      setCurrentSet((s) => s + 1);
-      setCurrentCycle(1);
-      setPhase("work");
-      setTimeLeft(config.work);
-    }
+
+      if (phase === "rest") {
+        setCurrentCycle((c) => c + 1);
+        setPhase("work");
+        setTimeLeft(config.work);
+        return;
+      }
+
+      if (phase === "restBetweenSets") {
+        setCurrentSet((s) => s + 1);
+        setCurrentCycle(1);
+        setPhase("work");
+        setTimeLeft(config.work);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [
     timeLeft,
     phase,
@@ -95,6 +101,7 @@ export const useIntervalTimer = (config: TimerConfig) => {
     currentSet,
     totalCycles,
     totalSets,
+    isPaused,
     config.work,
     config.rest,
     config.restBetweenSets,
@@ -175,10 +182,23 @@ export const useIntervalTimer = (config: TimerConfig) => {
   // ]);
 
   const pause = () => {
-    console.log("pause");
+    if (phase === "idle" || phase === "finished") {
+      return;
+    }
+
+    setIsPaused(true);
+  };
+
+  const resume = () => {
+    if (phase === "idle" || phase === "finished") {
+      return;
+    }
+
+    setIsPaused(false);
   };
 
   const reset = () => {
+    setIsPaused(false);
     setPhase("idle");
     setTimeLeft(0);
     setCurrentCycle(1);
@@ -190,8 +210,10 @@ export const useIntervalTimer = (config: TimerConfig) => {
     timeLeft,
     currentCycle,
     currentSet,
+    isPaused,
     start,
     pause,
+    resume,
     reset,
   };
 };

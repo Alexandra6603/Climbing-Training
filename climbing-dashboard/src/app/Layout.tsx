@@ -12,8 +12,9 @@ type Props = {
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/workouts', label: 'Workouts' },
+  { to: '/standards', label: 'Standards' },
   { to: '/timer', label: 'Timer' },
-  { to: '/goals', label: 'Goals' },
+  // { to: '/goals', label: 'Goals' },
 ] as const;
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
