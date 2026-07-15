@@ -1,4 +1,4 @@
-import type { Standard, StandardsAttempt } from "./types";
+import type { CurrentAttemptEdit, Standard, StandardsAttempt } from "./types";
 import { standards, standardsAttempts } from "./mocks";
 
 const fakeStandards: Standard[] = [...standards] as const;
@@ -10,6 +10,7 @@ export interface StandardsApi {
   addStandardsAttempt: () =>Promise<void>; //post? ПОЯСНЕНИЕ: для добавления попытки с фронта ничего передавать не нужно
   //просто доваляем новый элемент в начало массива, в ответе ничего не возвращаем (умпех или ошибка)
   deleteStandardsAttempt: (id: string) => Promise<void>; //delete
+  saveStandardAttempt: (attempt: CurrentAttemptEdit) => Promise<void>; //хз, чисто сохранение одного поля, подумать как лучше передавать
 }
 
 export const fakeStandardsApi: StandardsApi = {
@@ -47,5 +48,21 @@ export const fakeStandardsApi: StandardsApi = {
       fakeStandardsAttempts.filter(
         item => item.id !== id
       );
+  },
+
+  async saveStandardAttempt(attempt: CurrentAttemptEdit) {
+    if (!attempt.attemptId || !attempt.standardId || attempt.value === "") {
+      throw new Error("Invalid attempt data");
+    }
+
+    const target = fakeStandardsAttempts.find(
+      (item) => item.id === attempt.attemptId
+    );
+
+    if (!target) {
+      throw new Error("Attempt not found");
+    }
+
+    target.values[attempt.standardId] = attempt.value;
   }
 };

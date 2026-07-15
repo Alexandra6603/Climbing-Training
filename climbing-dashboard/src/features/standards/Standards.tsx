@@ -35,13 +35,13 @@ export const Standards = () => {
     }).format(new Date(date));
 
   const addAttempt = () => {
-    // const currentMonth = formatMonthYear(new Date().toISOString()).slice(0, 2);
-    // const previousMonth = formatMonthYear(attempts[0].date).slice(0, 2);
+    const currentMonth = formatMonthYear(new Date().toISOString()).slice(0, 2);
+    const previousMonth = formatMonthYear(attempts[0].date).slice(0, 2);
 
-    // if (Number(currentMonth) - Number(previousMonth) < 3) {
-    //   alert('You can only add an attempt every 3 months');
-    //   return;
-    // }
+    if (Number(currentMonth) - Number(previousMonth) < 3) {
+      alert('You can only add an attempt every 3 months');
+      return;
+    }
 
     standardsApi.addStandardsAttempt()
       .then(() => standardsApi.getStandardsAttempts())
@@ -58,12 +58,14 @@ export const Standards = () => {
   }
 
   const editAttempt = (attempt: StandardsAttempt, idStandard: string,) => {
-    setCurrentAttempt({
-      standardId: idStandard,
-      value: attempt.values[idStandard]?.toString() ?? '',
-      attemptId: attempt.id,
-    });
-    setIsEditAttemptOpen(true);
+    if (attempt.status === 'inProgress') {
+      setCurrentAttempt({
+        standardId: idStandard,
+        value: attempt.values[idStandard]?.toString() ?? '',
+        attemptId: attempt.id,
+      });
+      setIsEditAttemptOpen(true);
+    }
   }
 
   const handleSaveAttempt = (e: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
@@ -80,6 +82,13 @@ export const Standards = () => {
       ...currentAttempt,
       value,
     });
+  }
+
+  const saveStandardAttempt = () => {
+    standardsApi.saveStandardAttempt(currentAttempt as CurrentAttemptEdit)
+      .then(() => standardsApi.getStandardsAttempts())
+      .then(setAttempts);
+      setIsEditAttemptOpen(false);
   }
   
   if (loading) {
@@ -153,7 +162,7 @@ export const Standards = () => {
               onChange={(e) => handleSaveAttempt(e)}/>
             <button 
               className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center justify-center cursor-pointer" 
-              onClick={() => {setIsEditAttemptOpen(false)}}>
+              onClick={saveStandardAttempt}>
               Save
             </button>
           </div>

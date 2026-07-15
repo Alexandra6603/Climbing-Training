@@ -8,7 +8,7 @@ export interface StandardsAttempt {
   id: string;
   date: string;
   status: 'completed' | 'inProgress';
-  values: Record<string, number>;
+  values: Record<string, number | string>;
 }
 
 export interface DataToAdd {
