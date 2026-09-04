@@ -1,3 +1,4 @@
+import { Workouts } from "../features/workouts/workouts";
 export const WorkoutsPage = () => {
-  return <div>Workouts</div>;
+  return <Workouts />;
 };
