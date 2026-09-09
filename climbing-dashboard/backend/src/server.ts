@@ -2,6 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from './generated/prisma/client.js';
+import cors from "cors";
+import { standardsRouter } from './routes/standards.route.js';
 
 const adapter = new PrismaBetterSqlite3({
   url: process.env.DATABASE_URL!,
@@ -10,51 +12,71 @@ const adapter = new PrismaBetterSqlite3({
 const prisma = new PrismaClient({ adapter });
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
-const standards = [
-  { id: 1, name: 'Pull-up' },
-  { id: 2, name: 'Push-up' },
-  { id: 3, name: 'Sit-up' },
-];
 
 app.get('/', (req, res) => {
   res.json({ message: 'Hello from backend!' });
 });
 
-app.get('/standards', async (req, res) => {
-  const standards = await prisma.standard.findMany();
+app.use("/standards", standardsRouter);
 
-  res.json(standards);
-});
+// app.get('/standards', async (req, res) => {
+//   const standards = await prisma.standard.findMany();
 
-app.post('/standards', async (req, res) => {
-  const { name } = req.body;
+//   res.json(standards);
+// });
 
-  const standard = await prisma.standard.create({
-    data: { name },
+app.get('/standards-attempts', async (req, res) => {
+  const attempts = await prisma.standardsAttempt.findMany({
+    include: {
+      values: true,
+    },
   });
 
-  res.json(standard);
+  const result = attempts.map((attempt) => ({
+    id: attempt.id,
+    date: attempt.date,
+    status: attempt.status,
+    values: Object.fromEntries(
+      attempt.values.map((item) => [
+        item.standardId,
+        item.value,
+      ])
+    ),
+  }));
+
+  res.json(result);
 });
 
-app.put('/standards/:id', async (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
-  const standard = await prisma.standard.update({
-    where: { id: parseInt(id) },
-    data: { name },
-  });
-  res.json(standard);
-});
+// app.post('/standards', async (req, res) => {
+//   const { name } = req.body;
 
-app.delete('/standards/:id', async (req, res) => {
-  const { id } = req.params;
-  const standard = await prisma.standard.delete({
-    where: { id: parseInt(id) },
-  });
-  res.json(standard);
-});
+//   const standard = await prisma.standard.create({
+//     data: { name },
+//   });
+
+//   res.json(standard);
+// });
+
+// app.put('/standards/:id', async (req, res) => {
+//   const { id } = req.params;
+//   const { name } = req.body;
+//   const standard = await prisma.standard.update({
+//     where: { id: parseInt(id) },
+//     data: { name },
+//   });
+//   res.json(standard);
+// });
+
+// app.delete('/standards/:id', async (req, res) => {
+//   const { id } = req.params;
+//   const standard = await prisma.standard.delete({
+//     where: { id: parseInt(id) },
+//   });
+//   res.json(standard);
+// });
 
 
 app.listen(3000, () => {

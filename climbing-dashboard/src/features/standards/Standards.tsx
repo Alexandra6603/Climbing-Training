@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { fakeStandardsApi } from "../../api/standards/service";
+import { standardsApi } from "../../api/standards/service";
 import { BottomSheet } from "../../shared/ui/bottomSheet";
 import type { CurrentAttemptEdit, Standard, StandardsAttempt } from "../../api/standards/types";
 import { isValidDecimal, parseDecimal } from "../../shared/functions";
 
 export const Standards = () => {
-  const standardsApi = fakeStandardsApi;
+  const service = standardsApi;
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [standards, setStandards] = useState<Standard[]>([]);
@@ -16,8 +16,8 @@ export const Standards = () => {
   const [currentAttempt, setCurrentAttempt] = useState<CurrentAttemptEdit | null>(null);
 
   useEffect(() => {
-    standardsApi.getStandards().then(setStandards)
-      .then(() => standardsApi.getStandardsAttempts())
+    service.getStandards().then(setStandards)
+      .then(() => service.getStandardsAttempts())
       .then(setAttempts)
       .finally(() => setLoading(false));
   }, []);
@@ -43,29 +43,29 @@ export const Standards = () => {
       return;
     }
 
-    standardsApi.addStandardsAttempt()
-      .then(() => standardsApi.getStandardsAttempts())
-      .then(setAttempts);
+    // standardsApi.addStandardsAttempt()
+    //   .then(() => standardsApi.getStandardsAttempts())
+    //   .then(setAttempts);
   };
 
   //удалить можно только последнюю попытку, если она в статусе inProgress
   const removeAttempt = () => {
-    if (attempts && attempts[0].status === 'inProgress') {
-      standardsApi.deleteStandardsAttempt(attempts[0].id)
-        .then(() => standardsApi.getStandardsAttempts())
-        .then(setAttempts);
-    }
+    // if (attempts && attempts[0].status === 'inProgress') {
+    //   standardsApi.deleteStandardsAttempt(attempts[0].id)
+    //     .then(() => standardsApi.getStandardsAttempts())
+    //     .then(setAttempts);
+    // }
   }
 
   const editAttempt = (attempt: StandardsAttempt, idStandard: string,) => {
-    if (attempt.status === 'inProgress') {
-      setCurrentAttempt({
-        standardId: idStandard,
-        value: attempt.values[idStandard]?.toString() ?? '',
-        attemptId: attempt.id,
-      });
-      setIsEditAttemptOpen(true);
-    }
+    // if (attempt.status === 'inProgress') {
+    //   setCurrentAttempt({
+    //     standardId: idStandard,
+    //     value: attempt.values[idStandard]?.toString() ?? '',
+    //     attemptId: attempt.id,
+    //   });
+    //   setIsEditAttemptOpen(true);
+    // }
   }
 
   const handleSaveAttempt = (e: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
@@ -85,10 +85,10 @@ export const Standards = () => {
   }
 
   const saveStandardAttempt = () => {
-    standardsApi.saveStandardAttempt(currentAttempt as CurrentAttemptEdit)
-      .then(() => standardsApi.getStandardsAttempts())
-      .then(setAttempts);
-      setIsEditAttemptOpen(false);
+    // standardsApi.saveStandardAttempt(currentAttempt as CurrentAttemptEdit)
+    //   .then(() => standardsApi.getStandardsAttempts())
+    //   .then(setAttempts);
+    //   setIsEditAttemptOpen(false);
   }
   
   if (loading) {

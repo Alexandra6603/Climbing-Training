@@ -1,16 +1,29 @@
-import type { CurrentAttemptEdit, Standard, StandardsAttempt } from "./types";
+import type { Standard, StandardsAttempt } from "./types";
 import { standards, standardsAttempts } from "./mocks";
+import { api } from "../api";
 
 const fakeStandards: Standard[] = [...standards] as const;
-let fakeStandardsAttempts: StandardsAttempt[] = [...standardsAttempts];
+const fakeStandardsAttempts: StandardsAttempt[] = [...standardsAttempts];
 
 export interface StandardsApi {
   getStandards: () => Promise<Standard[]>; //get
   getStandardsAttempts: () => Promise<StandardsAttempt[]>; //get
-  addStandardsAttempt: () =>Promise<void>; //post? ПОЯСНЕНИЕ: для добавления попытки с фронта ничего передавать не нужно
+  //addStandardsAttempt: () =>Promise<void>; //post? ПОЯСНЕНИЕ: для добавления попытки с фронта ничего передавать не нужно
   //просто доваляем новый элемент в начало массива, в ответе ничего не возвращаем (умпех или ошибка)
-  deleteStandardsAttempt: (id: string) => Promise<void>; //delete
-  saveStandardAttempt: (attempt: CurrentAttemptEdit) => Promise<void>; //хз, чисто сохранение одного поля, подумать как лучше передавать
+  //deleteStandardsAttempt: (id: string) => Promise<void>; //delete
+  //saveStandardAttempt: (attempt: CurrentAttemptEdit) => Promise<void>; //хз, чисто сохранение одного поля, подумать как лучше передавать
+}
+
+export const standardsApi: StandardsApi = {
+  async getStandards() {
+    const response = await api.get("/standards");
+    return response.data;
+  },
+
+  async getStandardsAttempts() {
+    const response = await api.get("/standards-attempts");
+    return response.data;
+  },
 }
 
 export const fakeStandardsApi: StandardsApi = {
@@ -22,47 +35,47 @@ export const fakeStandardsApi: StandardsApi = {
     return [...fakeStandardsAttempts];
   },
 
-  async addStandardsAttempt() {
-    fakeStandardsAttempts.unshift({
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      status: 'inProgress',
-      values: {},
-    });
-  },
+  // async addStandardsAttempt() {
+  //   fakeStandardsAttempts.unshift({
+  //     id: Date.now().toString(),
+  //     date: new Date().toISOString(),
+  //     status: 'inProgress',
+  //     values: {},
+  //   });
+  // },
 
-  async deleteStandardsAttempt(id: string) {
-    const attempt = fakeStandardsAttempts.find(
-      item => item.id === id
-    );
+  // async deleteStandardsAttempt(id: string) {
+  //   const attempt = fakeStandardsAttempts.find(
+  //     item => item.id === id
+  //   );
   
-    if (!attempt) {
-      throw new Error('Attempt not found');
-    }
+  //   if (!attempt) {
+  //     throw new Error('Attempt not found');
+  //   }
   
-    if (attempt.status !== 'inProgress') {
-      throw new Error('Attempt cannot be deleted');
-    }
+  //   if (attempt.status !== 'inProgress') {
+  //     throw new Error('Attempt cannot be deleted');
+  //   }
   
-    fakeStandardsAttempts =
-      fakeStandardsAttempts.filter(
-        item => item.id !== id
-      );
-  },
+  //   fakeStandardsAttempts =
+  //     fakeStandardsAttempts.filter(
+  //       item => item.id !== id
+  //     );
+  // },
 
-  async saveStandardAttempt(attempt: CurrentAttemptEdit) {
-    if (!attempt.attemptId || !attempt.standardId || attempt.value === "") {
-      throw new Error("Invalid attempt data");
-    }
+  // async saveStandardAttempt(attempt: CurrentAttemptEdit) {
+  //   if (!attempt.attemptId || !attempt.standardId || attempt.value === "") {
+  //     throw new Error("Invalid attempt data");
+  //   }
 
-    const target = fakeStandardsAttempts.find(
-      (item) => item.id === attempt.attemptId
-    );
+  //   const target = fakeStandardsAttempts.find(
+  //     (item) => item.id === attempt.attemptId
+  //   );
 
-    if (!target) {
-      throw new Error("Attempt not found");
-    }
+  //   if (!target) {
+  //     throw new Error("Attempt not found");
+  //   }
 
-    target.values[attempt.standardId] = attempt.value;
-  }
+  //   target.values[attempt.standardId] = attempt.value;
+  // }
 };
