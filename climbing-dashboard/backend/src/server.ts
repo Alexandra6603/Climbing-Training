@@ -1,16 +1,10 @@
 import 'dotenv/config';
 import express from 'express';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import { PrismaClient } from './generated/prisma/client.js';
 import cors from "cors";
 import { standardsRouter } from './routes/standards.route.js';
+import { prisma } from './db/prisma.js';
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL!,
-});
-
-const prisma = new PrismaClient({ adapter });
-
+// Initialize Prisma
 const app = express();
 app.use(cors());
 app.use(express.json());

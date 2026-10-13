@@ -1,7 +1,8 @@
-import { getStandards } from "../controllers/standards.controller.js";
+import { createStandardsAttempt, getStandards } from "../controllers/standards.controller.js";
 import { Router } from "express";
 
 export const standardsRouter = Router();
 
-standardsRouter.get("/", getStandards);
+standardsRouter.get('/', getStandards);
+standardsRouter.post('/attempts', createStandardsAttempt);
 

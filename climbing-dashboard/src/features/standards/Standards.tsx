@@ -4,6 +4,25 @@ import { standardsApi } from "../../api/standards/service";
 import { BottomSheet } from "../../shared/ui/bottomSheet";
 import type { CurrentAttemptEdit, Standard, StandardsAttempt } from "../../api/standards/types";
 import { isValidDecimal, parseDecimal } from "../../shared/functions";
+import axios from "axios";
+
+const addMonths = (date: Date, months: number): Date => {
+  const result = new Date(date);
+  const day = result.getDate();
+
+  result.setDate(1);
+  result.setMonth(result.getMonth() + months);
+
+  const lastDay = new Date(
+    result.getFullYear(),
+    result.getMonth() + 1,
+    0,
+  ).getDate();
+
+  result.setDate(Math.min(day, lastDay));
+
+  return result;
+};
 
 export const Standards = () => {
   const service = standardsApi;
@@ -14,6 +33,18 @@ export const Standards = () => {
   const [loading, setLoading] = useState(true);
   const [isEditAttemptOpen, setIsEditAttemptOpen] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState<CurrentAttemptEdit | null>(null);
+
+  const latestAttempt = [...attempts].sort(
+    (a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime(),
+  )[0];
+  
+  const nextAvailableDate = latestAttempt
+    ? addMonths(new Date(latestAttempt.date), 3)
+    : null;
+  
+  const canAddAttempt =
+    !nextAvailableDate || new Date() >= nextAvailableDate;
 
   useEffect(() => {
     service.getStandards().then(setStandards)
@@ -34,19 +65,31 @@ export const Standards = () => {
       year: "numeric",
     }).format(new Date(date));
 
-  const addAttempt = () => {
-    const currentMonth = formatMonthYear(new Date().toISOString()).slice(0, 2);
-    const previousMonth = formatMonthYear(attempts[0].date).slice(0, 2);
-
-    if (Number(currentMonth) - Number(previousMonth) < 3) {
-      alert('You can only add an attempt every 3 months');
-      return;
-    }
-
-    // standardsApi.addStandardsAttempt()
-    //   .then(() => standardsApi.getStandardsAttempts())
-    //   .then(setAttempts);
-  };
+    const addAttempt = () => {
+      standardsApi.addStandardsAttempt()
+        .then(() => standardsApi.getStandardsAttempts())
+        .then(setAttempts)
+        .catch((error: unknown) => {
+          if (
+            axios.isAxiosError<{
+              message?: string;
+              nextAvailableDate?: string;
+            }>(error) &&
+            error.response?.status === 409
+          ) {
+            const date = error.response.data.nextAvailableDate;
+    
+            alert(
+              date
+                ? `Следующая сдача доступна с ${new Date(date).toLocaleDateString("ru-RU")}`
+                : error.response.data.message ?? "Сдавать нормативы пока рано",
+            );
+            return;
+          }
+    
+          alert("Не удалось создать попытку. Попробуй ещё раз.");
+        });
+    };
 
   //удалить можно только последнюю попытку, если она в статусе inProgress
   const removeAttempt = () => {
@@ -101,11 +144,20 @@ export const Standards = () => {
     return (
       <div>  
         <div className="flex justify-end gap-2">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 flex items-center justify-center cursor-pointer"
-            onClick={() => {addAttempt()}}>
+        {canAddAttempt ? (
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 flex items-center justify-center cursor-pointer"
+            onClick={addAttempt}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add attempt
           </button>
+        ) : (
+          <p className="mb-4 text-sm text-gray-500">
+            Next attempt available on{" "}
+            {nextAvailableDate?.toLocaleDateString("en-GB")}
+          </p>
+        )}
           {attempts && attempts[0].status === 'inProgress' && (
             <button className="bg-red-500 text-white px-4 py-2 rounded-md mb-4 flex items-center justify-center cursor-pointer"
               onClick={() => {removeAttempt()}}>

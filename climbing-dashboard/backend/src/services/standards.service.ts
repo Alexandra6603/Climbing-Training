@@ -1,11 +1,22 @@
-import { PrismaClient } from "../generated/prisma/client.js";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { prisma } from '../db/prisma.js';
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL!,
-});
+function addMonths(date: Date, months: number): Date {
+  const result = new Date(date);
+  const day = result.getDate();
 
-const prisma = new PrismaClient({ adapter });
+  result.setDate(1);
+  result.setMonth(result.getMonth() + months);
+
+  const lastDay = new Date(
+    result.getFullYear(),
+    result.getMonth() + 1,
+    0,
+  ).getDate();
+
+  result.setDate(Math.min(day, lastDay));
+
+  return result;
+}
 
 export const standardsService = {
   getStandards() {
@@ -16,5 +27,36 @@ export const standardsService = {
   getStandardsAttempts() {
     const attempts = prisma.standardsAttempt.findMany();
     return attempts;
+  },
+
+  async createStandardsAttempt() {
+    const latestAttempt = await prisma.standardsAttempt.findFirst({
+      orderBy: {
+        date: 'desc',
+      },
+    });
+
+    if (latestAttempt) {
+      const nextAvailableDate = addMonths(latestAttempt.date, 3);
+
+      if (new Date() < nextAvailableDate) {
+        return {
+          created: false as const,
+          nextAvailableDate,
+        };
+      }
+    }
+
+    const attempt = await prisma.standardsAttempt.create({
+      data: {
+        date: new Date(),
+        status: 'inProgress',
+      },
+    });
+
+    return {
+      created: true as const,
+      attempt,
+    };
   },
 };
