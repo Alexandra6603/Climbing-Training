@@ -33,6 +33,8 @@ export const Standards = () => {
   const [loading, setLoading] = useState(true);
   const [isEditAttemptOpen, setIsEditAttemptOpen] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState<CurrentAttemptEdit | null>(null);
+  const [draftAttempt, setDraftAttempt] = useState<StandardsAttempt | null>(null);
+  const displayedAttempts = draftAttempt ? [draftAttempt, ...attempts] : attempts;
 
   const latestAttempt = [...attempts].sort(
     (a, b) =>
@@ -66,39 +68,56 @@ export const Standards = () => {
     }).format(new Date(date));
 
     const addAttempt = () => {
-      standardsApi.addStandardsAttempt()
-        .then(() => standardsApi.getStandardsAttempts())
-        .then(setAttempts)
+      if (!canAddAttempt || draftAttempt) return;
+    
+      setDraftAttempt({
+        id: 'local-draft',
+        date: new Date().toISOString(),
+        status: 'inProgress',
+        values: {},
+      });
+    };
+
+
+
+    const removeAttempt = () => {
+      if (draftAttempt) {
+        setDraftAttempt(null);
+        return;
+      }
+    
+      if (!latestAttempt) return;
+    
+      service.deleteStandardsAttempt()
+        .then(() => {
+          setAttempts((prev) =>
+            prev.filter((attempt) => attempt.id !== latestAttempt.id),
+          );
+        })
         .catch((error: unknown) => {
           if (
-            axios.isAxiosError<{
-              message?: string;
-              nextAvailableDate?: string;
-            }>(error) &&
+            axios.isAxiosError<{ message?: string }>(error) &&
             error.response?.status === 409
           ) {
-            const date = error.response.data.nextAvailableDate;
-    
             alert(
-              date
-                ? `Следующая сдача доступна с ${new Date(date).toLocaleDateString("ru-RU")}`
-                : error.response.data.message ?? "Сдавать нормативы пока рано",
+              error.response.data.message ??
+                'The latest attempt cannot be deleted',
             );
             return;
           }
     
-          alert("Не удалось создать попытку. Попробуй ещё раз.");
+          if (
+            axios.isAxiosError(error) &&
+            error.response?.status === 404
+          ) {
+            alert('There are no attempts to delete');
+            return;
+          }
+    
+          alert('Failed to delete the attempt. Please try again.');
         });
     };
-
-  //удалить можно только последнюю попытку, если она в статусе inProgress
-  const removeAttempt = () => {
-    // if (attempts && attempts[0].status === 'inProgress') {
-    //   standardsApi.deleteStandardsAttempt(attempts[0].id)
-    //     .then(() => standardsApi.getStandardsAttempts())
-    //     .then(setAttempts);
-    // }
-  }
+    
 
   const editAttempt = (attempt: StandardsAttempt, idStandard: string,) => {
     // if (attempt.status === 'inProgress') {
@@ -143,35 +162,40 @@ export const Standards = () => {
   } else {
     return (
       <div>  
-        <div className="flex justify-end gap-2">
-        {canAddAttempt ? (
+        <div className="flex justify-between items-end">
+          {!draftAttempt ? (
+            canAddAttempt ? (
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 flex items-center justify-center cursor-pointer"
+                onClick={addAttempt}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add attempt
+              </button>
+            ) : (
+              <p className="mb-4 text-sm text-gray-500">
+                Next attempt available on{" "}
+                {nextAvailableDate?.toLocaleDateString("en-GB")}
+              </p>
+            )
+          ) : null}
+
+        {(latestAttempt?.status === 'inProgress' || draftAttempt !== null) && (
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 flex items-center justify-center cursor-pointer"
-            onClick={addAttempt}
+            className="bg-red-500 text-white px-4 py-2 rounded-md mb-4 flex items-center justify-center cursor-pointer"
+            onClick={removeAttempt}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add attempt
+            <Trash2 className="w-4 h-4 mr-2" />
+            Remove last attempt
           </button>
-        ) : (
-          <p className="mb-4 text-sm text-gray-500">
-            Next attempt available on{" "}
-            {nextAvailableDate?.toLocaleDateString("en-GB")}
-          </p>
         )}
-          {attempts && attempts[0].status === 'inProgress' && (
-            <button className="bg-red-500 text-white px-4 py-2 rounded-md mb-4 flex items-center justify-center cursor-pointer"
-              onClick={() => {removeAttempt()}}>
-              <Trash2 className="w-4 h-4 mr-2" />
-              Remove attempt
-            </button>
-          )}
         </div>    
         <table className="w-full border-collapse border border-gray-100 rounded-lg">
           <thead>
             <tr>
               <th className="border p-2"></th>
   
-              {attempts && attempts.map((attempt) => (
+              {displayedAttempts && displayedAttempts.map((attempt) => (
                 <th
                   key={attempt.id}
                   className="border p-2 text-center"
@@ -189,7 +213,7 @@ export const Standards = () => {
                   {standard.name}, {standard.unit}
                 </td>
   
-                {attempts && attempts.map((attempt) => (
+                {displayedAttempts && displayedAttempts.map((attempt) => (
                   <td
                     key={attempt.id}
                     className="border p-2 text-center"

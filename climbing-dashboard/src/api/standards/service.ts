@@ -6,7 +6,7 @@ export interface StandardsApi {
   getStandardsAttempts: () => Promise<StandardsAttempt[]>; //get
   addStandardsAttempt: () =>Promise<StandardsAttempt>; //post? ПОЯСНЕНИЕ: для добавления попытки с фронта ничего передавать не нужно
   //просто доваляем новый элемент в начало массива, в ответе ничего не возвращаем (умпех или ошибка)
-  //deleteStandardsAttempt: (id: string) => Promise<void>; //delete
+  deleteStandardsAttempt: () => Promise<void>; //delete
   //saveStandardAttempt: (attempt: CurrentAttemptEdit) => Promise<void>; //хз, чисто сохранение одного поля, подумать как лучше передавать
 }
 
@@ -17,7 +17,7 @@ export const standardsApi: StandardsApi = {
   },
 
   async getStandardsAttempts() {
-    const response = await api.get("/standards-attempts");
+    const response = await api.get("/standards/attempts");
     return response.data;
   },
 
@@ -27,5 +27,9 @@ export const standardsApi: StandardsApi = {
     );
   
     return data;
+  },
+
+  async deleteStandardsAttempt(): Promise<void> {
+    await api.delete('/standards/attempts');
   },
 }
