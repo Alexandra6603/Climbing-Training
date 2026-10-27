@@ -28,18 +28,15 @@ export const standardsService = {
       ),
     }));
   },
-  
 
-  async createStandardsAttempt() {
+  async createStandardsAttempt(standardId: string, value: number) {
     const latestAttempt = await prisma.standardsAttempt.findFirst({
-      orderBy: {
-        date: 'desc',
-      },
+      orderBy: { date: 'desc' },
     });
-
+  
     if (latestAttempt) {
       const nextAvailableDate = addMonths(latestAttempt.date, 3);
-
+  
       if (new Date() < nextAvailableDate) {
         return {
           created: false as const,
@@ -47,17 +44,71 @@ export const standardsService = {
         };
       }
     }
-
+  
     const attempt = await prisma.standardsAttempt.create({
       data: {
         date: new Date(),
         status: 'inProgress',
+        values: {
+          create: {
+            standard: {
+              connect: { id: standardId },
+            },
+            value,
+          },
+        },
       },
+      include: { values: true },
     });
-
+  
     return {
       created: true as const,
-      attempt,
+      attempt: mapAttempt(attempt),
+    };
+  },
+  
+  async saveStandardAttempt(
+    attemptId: string,
+    standardId: string,
+    value: number,
+  ) {
+    const attempt = await prisma.standardsAttempt.findUnique({
+      where: { id: attemptId },
+    });
+  
+    if (!attempt) {
+      return { saved: false as const, reason: 'notFound' as const };
+    }
+  
+    if (attempt.status !== 'inProgress') {
+      return { saved: false as const, reason: 'notInProgress' as const };
+    }
+  
+    await prisma.standardAttemptValue.upsert({
+      where: {
+        attemptId_standardId: {
+          attemptId,
+          standardId,
+        },
+      },
+      create: {
+        attemptId,
+        standardId,
+        value,
+      },
+      update: {
+        value,
+      },
+    });
+  
+    const updatedAttempt = await prisma.standardsAttempt.findUniqueOrThrow({
+      where: { id: attemptId },
+      include: { values: true },
+    });
+  
+    return {
+      saved: true as const,
+      attempt: mapAttempt(updatedAttempt),
     };
   },
 
@@ -110,4 +161,23 @@ function addMonths(date: Date, months: number): Date {
   result.setDate(Math.min(day, lastDay));
 
   return result;
+}
+
+function mapAttempt(attempt: {
+  id: string;
+  date: Date;
+  status: string;
+  values: { standardId: string; value: number }[];
+}) {
+  return {
+    id: attempt.id,
+    date: attempt.date,
+    status: attempt.status,
+    values: Object.fromEntries(
+      attempt.values.map((item) => [
+        item.standardId,
+        item.value,
+      ]),
+    ),
+  };
 }

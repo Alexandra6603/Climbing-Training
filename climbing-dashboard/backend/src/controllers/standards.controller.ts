@@ -1,15 +1,13 @@
-import { standardsService } from "../services/standards.service.js";
-import type { Request, Response } from "express";
+import type { Request, Response } from 'express';
+import { standardsService } from '../services/standards.service.js';
 
 export const getStandards = async (
   _req: Request,
-  res: Response
+  res: Response,
 ) => {
   const standards = await standardsService.getStandards();
-
-  res.json(standards);
+  return res.json(standards);
 };
-
 
 export const getStandardsAttempts = async (
   _req: Request,
@@ -19,12 +17,26 @@ export const getStandardsAttempts = async (
   return res.json(attempts);
 };
 
-
 export const createStandardsAttempt = async (
-  _req: Request,
-  res: Response
+  req: Request,
+  res: Response,
 ) => {
-  const result = await standardsService.createStandardsAttempt();
+  const { standardId, value } = req.body;
+
+  if (
+    typeof standardId !== 'string' ||
+    typeof value !== 'number' ||
+    !Number.isFinite(value)
+  ) {
+    return res.status(400).json({
+      message: 'standardId must be a string and value must be a finite number',
+    });
+  }
+
+  const result = await standardsService.createStandardsAttempt(
+    standardId,
+    value,
+  );
 
   if (!result.created) {
     return res.status(409).json({
@@ -33,14 +45,46 @@ export const createStandardsAttempt = async (
     });
   }
 
-  const { attempt } = result;
+  return res.status(201).json(result.attempt);
+};
 
-  res.status(201).json({
-    id: attempt.id,
-    date: attempt.date,
-    status: attempt.status,
-    values: {},
-  });
+export const saveStandardAttempt = async (
+  req: Request,
+  res: Response,
+) => {
+  const { attemptId, standardId } = req.params;
+  const { value } = req.body;
+
+  if (
+    typeof attemptId !== 'string' ||
+    typeof standardId !== 'string' ||
+    typeof value !== 'number' ||
+    !Number.isFinite(value)
+  ) {
+    return res.status(400).json({
+      message: 'attemptId and standardId must be strings, and value must be a finite number',
+    });
+  }
+
+  const result = await standardsService.saveStandardAttempt(
+    attemptId,
+    standardId,
+    value,
+  );
+
+  if (!result.saved) {
+    if (result.reason === 'notFound') {
+      return res.status(404).json({
+        message: 'Standards attempt not found',
+      });
+    }
+
+    return res.status(409).json({
+      message: 'Cannot edit a completed attempt',
+    });
+  }
+
+  return res.json(result.attempt);
 };
 
 export const deleteLatestStandardsAttempt = async (

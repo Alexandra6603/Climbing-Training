@@ -119,15 +119,15 @@ export const Standards = () => {
     };
     
 
-  const editAttempt = (attempt: StandardsAttempt, idStandard: string,) => {
-    // if (attempt.status === 'inProgress') {
-    //   setCurrentAttempt({
-    //     standardId: idStandard,
-    //     value: attempt.values[idStandard]?.toString() ?? '',
-    //     attemptId: attempt.id,
-    //   });
-    //   setIsEditAttemptOpen(true);
-    // }
+  const editAttempt = (attempt: StandardsAttempt, standardId: string,) => {
+    if (attempt.status === 'inProgress') {
+      setCurrentAttempt({
+        standardId,
+        value: attempt.values[standardId]?.toString() ?? '',
+        attemptId: attempt.id,
+      });
+      setIsEditAttemptOpen(true);
+    }
   }
 
   const handleSaveAttempt = (e: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
@@ -146,12 +146,62 @@ export const Standards = () => {
     });
   }
 
-  const saveStandardAttempt = () => {
-    // standardsApi.saveStandardAttempt(currentAttempt as CurrentAttemptEdit)
-    //   .then(() => standardsApi.getStandardsAttempts())
-    //   .then(setAttempts);
-    //   setIsEditAttemptOpen(false);
-  }
+  const saveStandardAttempt = async () => {
+    if (!currentAttempt) return;
+  
+    const value = Number(currentAttempt.value);
+  
+    if (
+      currentAttempt.value.trim() === '' ||
+      !Number.isFinite(value)
+    ) {
+      alert('Please enter a valid number');
+      return;
+    }
+  
+    try {
+      const isDraft = currentAttempt.attemptId === 'local-draft';
+  
+      const savedAttempt = isDraft
+        ? await service.createStandardsAttempt(
+            currentAttempt.standardId,
+            value,
+          )
+        : await service.saveStandardAttempt(
+            currentAttempt.attemptId,
+            currentAttempt.standardId,
+            value,
+          );
+  
+      if (isDraft) {
+        setAttempts((prev) => [savedAttempt, ...prev]);
+        setDraftAttempt(null);
+      } else {
+        setAttempts((prev) =>
+          prev.map((attempt) =>
+            attempt.id === savedAttempt.id
+              ? savedAttempt
+              : attempt,
+          ),
+        );
+      }
+  
+      setIsEditAttemptOpen(false);
+      setCurrentAttempt(null);
+    } catch (error: unknown) {
+      if (
+        axios.isAxiosError<{ message?: string }>(error)
+      ) {
+        alert(
+          error.response?.data?.message ??
+            'Failed to save the standard. Please try again.',
+        );
+        return;
+      }
+  
+      alert('An unexpected error occurred');
+    }
+  };
   
   if (loading) {
     return (
