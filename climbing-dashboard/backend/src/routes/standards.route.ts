@@ -11,10 +11,10 @@ export const standardsRouter = Router();
 
 standardsRouter.get('/', getStandards);
 standardsRouter.get('/attempts', getStandardsAttempts);
-standardsRouter.delete('/attempts', deleteLatestStandardsAttempt);
 standardsRouter.post('/attempts', createStandardsAttempt);
 standardsRouter.put(
-  '/attempts/:attemptId/values/:standardId',
+  '/attempts/:attemptId', //перенести в тело запроса айдишник норматива
   saveStandardAttempt,
 );
 
+standardsRouter.delete('/delete-last-attempt', deleteLatestStandardsAttempt);

@@ -40,14 +40,17 @@ export const standardsApi: StandardsApi = {
     value: number,
   ): Promise<StandardsAttempt> {
     const { data } = await api.put<StandardsAttempt>(
-      `/standards/attempts/${encodeURIComponent(attemptId)}/values/${encodeURIComponent(standardId)}`,
-      { value },
+      `/standards/attempts/${encodeURIComponent(attemptId)}`,
+      { 
+        standardId,
+        value,
+      },
     );
   
     return data;
   },
 
   async deleteStandardsAttempt(): Promise<void> {
-    await api.delete('/standards/attempts');
+    await api.delete('/standards/delete-last-attempt');
   },
 }

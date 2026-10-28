@@ -52,8 +52,8 @@ export const saveStandardAttempt = async (
   req: Request,
   res: Response,
 ) => {
-  const { attemptId, standardId } = req.params;
-  const { value } = req.body;
+  const { attemptId } = req.params;
+  const { standardId, value } = req.body;
 
   if (
     typeof attemptId !== 'string' ||
