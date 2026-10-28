@@ -1,21 +1,14 @@
 import { prisma } from '../db/prisma.js';
+import { standardsRepository } from '../repositories/standards.repository.js';
 
 export const standardsService = {
   getStandards() {
-    return prisma.standard.findMany();
+    return standardsRepository.getStandards();
   },
 
-
   async getStandardsAttempts() {
-    const attempts = await prisma.standardsAttempt.findMany({
-      orderBy: {
-        date: 'desc',
-      },
-      include: {
-        values: true,
-      },
-    });
-
+    const attempts = await standardsRepository.getStandardsAttempts();
+  
     return attempts.map((attempt) => ({
       id: attempt.id,
       date: attempt.date,
@@ -30,10 +23,8 @@ export const standardsService = {
   },
 
   async createStandardsAttempt(standardId: string, value: number) {
-    const latestAttempt = await prisma.standardsAttempt.findFirst({
-      orderBy: { date: 'desc' },
-    });
-  
+    const latestAttempt = await standardsRepository.findLatestAttempt();
+
     if (latestAttempt) {
       const nextAvailableDate = addMonths(latestAttempt.date, 3);
   
@@ -45,21 +36,7 @@ export const standardsService = {
       }
     }
   
-    const attempt = await prisma.standardsAttempt.create({
-      data: {
-        date: new Date(),
-        status: 'inProgress',
-        values: {
-          create: {
-            standard: {
-              connect: { id: standardId },
-            },
-            value,
-          },
-        },
-      },
-      include: { values: true },
-    });
+    const attempt = await standardsRepository.createAttempt(standardId, value)
   
     return {
       created: true as const,
@@ -72,9 +49,7 @@ export const standardsService = {
     standardId: string,
     value: number,
   ) {
-    const attempt = await prisma.standardsAttempt.findUnique({
-      where: { id: attemptId },
-    });
+    const attempt = await standardsRepository.findUniqueAttempt(attemptId)
   
     if (!attempt) {
       return { saved: false as const, reason: 'notFound' as const };
@@ -84,27 +59,9 @@ export const standardsService = {
       return { saved: false as const, reason: 'notInProgress' as const };
     }
   
-    await prisma.standardAttemptValue.upsert({
-      where: {
-        attemptId_standardId: {
-          attemptId,
-          standardId,
-        },
-      },
-      create: {
-        attemptId,
-        standardId,
-        value,
-      },
-      update: {
-        value,
-      },
-    });
+    await standardsRepository.saveAttemptValue(attemptId, standardId, value)
   
-    const updatedAttempt = await prisma.standardsAttempt.findUniqueOrThrow({
-      where: { id: attemptId },
-      include: { values: true },
-    });
+    const updatedAttempt = await standardsRepository.updatedAttempt(attemptId)
   
     return {
       saved: true as const,
@@ -113,11 +70,7 @@ export const standardsService = {
   },
 
   async deleteLatestStandardsAttempt() {
-    const latestAttempt = await prisma.standardsAttempt.findFirst({
-      orderBy: {
-        date: 'desc',
-      },
-    });
+    const latestAttempt = await standardsRepository.findLatestAttempt()
 
     if (!latestAttempt) {
       return { deleted: false as const, reason: 'notFound' as const };
@@ -127,19 +80,7 @@ export const standardsService = {
       return { deleted: false as const, reason: 'notInProgress' as const };
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.standardAttemptValue.deleteMany({
-        where: {
-          attemptId: latestAttempt.id,
-        },
-      });
-
-      await tx.standardsAttempt.delete({
-        where: {
-          id: latestAttempt.id,
-        },
-      });
-    });
+    await standardsRepository.deleteLatestAttempt(latestAttempt.id)
 
     return { deleted: true as const };
   },
