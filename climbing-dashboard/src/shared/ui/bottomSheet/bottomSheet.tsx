@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import "./BottomSheet.css";
+import "./bottomSheet.css";
 
 interface BottomSheetProps {
   isOpen: boolean;
