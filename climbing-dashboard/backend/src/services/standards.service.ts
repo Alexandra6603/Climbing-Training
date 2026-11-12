@@ -1,4 +1,3 @@
-import { prisma } from '../db/prisma.js';
 import { standardsRepository } from '../repositories/standards.repository.js';
 
 export const standardsService = {
@@ -65,6 +64,25 @@ export const standardsService = {
   
     return {
       saved: true as const,
+      attempt: mapAttempt(updatedAttempt),
+    };
+  },
+
+  async completeStandardsAttempt(attemptId: string) {
+    const attempt = await standardsRepository.findUniqueAttempt(attemptId);
+
+    if (!attempt) {
+      return { completed: false as const, reason: 'notFound' as const };
+    }
+
+    if (attempt.status !== 'inProgress') {
+      return { completed: false as const, reason: 'notInProgress' as const };
+    }
+
+    const updatedAttempt = await standardsRepository.completeAttempt(attemptId);
+
+    return {
+      completed: true as const,
       attempt: mapAttempt(updatedAttempt),
     };
   },

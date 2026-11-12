@@ -1,5 +1,6 @@
 import { 
     createStandardsAttempt, 
+    completeStandardsAttempt,
     deleteLatestStandardsAttempt, 
     getStandards, 
     getStandardsAttempts,
@@ -13,8 +14,9 @@ standardsRouter.get('/', getStandards);
 standardsRouter.get('/attempts', getStandardsAttempts);
 standardsRouter.post('/attempts', createStandardsAttempt);
 standardsRouter.put(
-  '/attempts/:attemptId', //перенести в тело запроса айдишник норматива
+  '/attempts/:attemptId',
   saveStandardAttempt,
 );
+standardsRouter.put('/attempts/:attemptId/complete', completeStandardsAttempt);
 
 standardsRouter.delete('/delete-last-attempt', deleteLatestStandardsAttempt);

@@ -7,6 +7,7 @@ export interface StandardsApi {
   createStandardsAttempt: (standardId: string, value: number) => Promise<StandardsAttempt>; //post? ПОЯСНЕНИЕ: для добавления попытки с фронта ничего передавать не нужно
   //просто доваляем новый элемент в начало массива, в ответе ничего не возвращаем (умпех или ошибка)
   saveStandardAttempt: (attemptId: string, standardId: string, value: number) => Promise<StandardsAttempt>;
+  completeStandardsAttempt: (attemptId: string) => Promise<StandardsAttempt>;
   deleteStandardsAttempt: () => Promise<void>; //delete
   //saveStandardAttempt: (attempt: CurrentAttemptEdit) => Promise<void>; //хз, чисто сохранение одного поля, подумать как лучше передавать
 }
@@ -47,6 +48,14 @@ export const standardsApi: StandardsApi = {
       },
     );
   
+    return data;
+  },
+
+  async completeStandardsAttempt(attemptId: string): Promise<StandardsAttempt> {
+    const { data } = await api.put<StandardsAttempt>(
+      `/standards/attempts/${encodeURIComponent(attemptId)}/complete`,
+    );
+
     return data;
   },
 

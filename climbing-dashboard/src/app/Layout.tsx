@@ -29,8 +29,8 @@ export const Layout = ({ children }: Props) => {
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors">
       <header className="border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <nav className="flex gap-6">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
+          <nav className="min-w-0 flex flex-1 gap-5 overflow-x-auto whitespace-nowrap py-1 sm:gap-6">
             {navItems.map(({ to, label }) => (
               <NavLink key={to} to={to} className={navLinkClass}>
                 {label}

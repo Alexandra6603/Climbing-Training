@@ -77,6 +77,14 @@ export const standardsRepository = {
     });
   },
 
+  completeAttempt(attemptId: string) {
+    return prisma.standardsAttempt.update({
+      where: { id: attemptId },
+      data: { status: 'completed' },
+      include: { values: true },
+    });
+  },
+
   deleteLatestAttempt(latestAttemptId: string) {
     return prisma.$transaction(async (tx) => {
       await tx.standardAttemptValue.deleteMany({

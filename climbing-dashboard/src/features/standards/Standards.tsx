@@ -32,6 +32,7 @@ export const Standards = () => {
   const [attempts, setAttempts] = useState<StandardsAttempt[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditAttemptOpen, setIsEditAttemptOpen] = useState(false);
+  const [isCompleteConfirmOpen, setIsCompleteConfirmOpen] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState<CurrentAttemptEdit | null>(null);
   const [draftAttempt, setDraftAttempt] = useState<StandardsAttempt | null>(null);
   const displayedAttempts = draftAttempt ? [draftAttempt, ...attempts] : attempts;
@@ -202,6 +203,30 @@ export const Standards = () => {
       alert('An unexpected error occurred');
     }
   };
+
+  const completeAttempt = async () => {
+    if (!latestAttempt || latestAttempt.status !== 'inProgress') return;
+
+    if (Object.keys(latestAttempt.values).length === 0) {
+      alert('Add at least one standard value before completing the attempt.');
+      return;
+    }
+
+    try {
+      const completedAttempt = await service.completeStandardsAttempt(latestAttempt.id);
+      setAttempts((prev) => prev.map((attempt) =>
+        attempt.id === completedAttempt.id ? completedAttempt : attempt,
+      ));
+      setIsCompleteConfirmOpen(false);
+    } catch (error: unknown) {
+      if (axios.isAxiosError<{ message?: string }>(error)) {
+        alert(error.response?.data?.message ?? 'Failed to complete the attempt. Please try again.');
+        return;
+      }
+
+      alert('An unexpected error occurred');
+    }
+  };
   
   if (loading) {
     return (
@@ -212,18 +237,18 @@ export const Standards = () => {
   } else {
     return (
       <div>  
-        <div className="flex justify-between items-end">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-end">
           {!draftAttempt ? (
             canAddAttempt ? (
               <button
-                className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 flex items-center justify-center cursor-pointer"
+                className="min-h-11 w-full sm:w-auto bg-blue-500 text-white px-4 py-2 rounded-md flex items-center justify-center cursor-pointer"
                 onClick={addAttempt}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add attempt
               </button>
             ) : (
-              <p className="mb-4 text-sm text-gray-500">
+              <p className="text-sm text-gray-500">
                 Next attempt available on{" "}
                 {nextAvailableDate?.toLocaleDateString("en-GB")}
               </p>
@@ -232,25 +257,43 @@ export const Standards = () => {
 
         {(latestAttempt?.status === 'inProgress' || draftAttempt !== null) && (
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded-md mb-4 flex items-center justify-center cursor-pointer"
+            className="min-h-11 w-full sm:w-auto bg-red-500 text-white px-4 py-2 rounded-md flex items-center justify-center cursor-pointer"
             onClick={removeAttempt}
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Remove last attempt
           </button>
         )}
+        {latestAttempt?.status === 'inProgress' && !draftAttempt && (
+          <button
+            className="min-h-11 w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-md flex items-center justify-center cursor-pointer"
+            onClick={() => setIsCompleteConfirmOpen(true)}
+          >
+            Complete attempt
+          </button>
+        )}
         </div>    
-        <table className="w-full border-collapse border border-gray-100 rounded-lg">
+        <div className="w-fit max-w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800" role="region" aria-label="Standards attempts" tabIndex={0}>
+        <table className="w-max border-collapse text-sm">
+          <colgroup>
+            <col className="w-px" />
+            {displayedAttempts.map((attempt) => (
+              <col key={attempt.id} className="w-24" />
+            ))}
+          </colgroup>
           <thead>
             <tr>
-              <th className="border p-2"></th>
+              <th className="sticky left-0 z-[1] whitespace-nowrap border border-gray-200 bg-gray-50 p-3 text-left dark:border-gray-800 dark:bg-gray-900"></th>
   
               {displayedAttempts && displayedAttempts.map((attempt) => (
                 <th
                   key={attempt.id}
-                  className="border p-2 text-center"
+                  className="min-w-24 border border-gray-200 bg-gray-50 p-3 text-center dark:border-gray-800 dark:bg-gray-900"
                 >
-                  {formatMonthYear(attempt.date)}
+                  <div>{formatMonthYear(attempt.date)}</div>
+                  <div className={`mt-1 text-xs font-normal ${attempt.status === 'inProgress' ? 'text-amber-600' : 'text-gray-500'}`}>
+                    {attempt.status === 'inProgress' ? 'In progress' : 'Completed'}
+                  </div>
                 </th>
               ))}
             </tr>
@@ -259,15 +302,23 @@ export const Standards = () => {
           <tbody>
             {standards.map((standard) => (
               <tr key={standard.id}>
-                <td className="border p-2 font-semibold">
+                <th scope="row" className="sticky left-0 z-[1] whitespace-nowrap border border-gray-200 bg-white p-3 text-left font-semibold dark:border-gray-800 dark:bg-gray-950">
                   {standard.name}, {standard.unit}
-                </td>
+                </th>
   
                 {displayedAttempts && displayedAttempts.map((attempt) => (
                   <td
                     key={attempt.id}
-                    className="border p-2 text-center"
+                    className={`min-w-24 border border-gray-200 p-3 text-center dark:border-gray-800 ${attempt.status === 'inProgress' ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-900' : ''}`}
                     onClick={() => {editAttempt(attempt, standard.id)}}
+                    aria-label={`${standard.name}: ${attempt.values[standard.id] ?? 'no value'}, ${attempt.status === 'inProgress' ? 'edit value' : 'completed'}`}
+                    tabIndex={attempt.status === 'inProgress' ? 0 : undefined}
+                    onKeyDown={(event) => {
+                      if (attempt.status === 'inProgress' && (event.key === 'Enter' || event.key === ' ')) {
+                        event.preventDefault();
+                        editAttempt(attempt, standard.id);
+                      }
+                    }}
                   >
                     {attempt.values[standard.id] ?? "-"}
                   </td>
@@ -276,6 +327,7 @@ export const Standards = () => {
             ))}
           </tbody>
         </table>
+        </div>
         <BottomSheet isOpen={isEditAttemptOpen} onClose={() => setIsEditAttemptOpen(false)} title={standards.find((standard) => standard.id === currentAttempt?.standardId)?.name ?? ''}>
           <div className="flex flex-col gap-2">
             <input 
@@ -290,6 +342,29 @@ export const Standards = () => {
               className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center justify-center cursor-pointer" 
               onClick={saveStandardAttempt}>
               Save
+            </button>
+          </div>
+        </BottomSheet>
+        <BottomSheet
+          isOpen={isCompleteConfirmOpen}
+          onClose={() => setIsCompleteConfirmOpen(false)}
+          title="Complete attempt?"
+        >
+          <p className="text-sm text-gray-600">
+            You will no longer be able to edit or delete this attempt.
+          </p>
+          <div className="flex gap-2">
+            <button
+              className="border px-4 py-2 rounded-md flex-1 cursor-pointer"
+              onClick={() => setIsCompleteConfirmOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded-md flex-1 cursor-pointer"
+              onClick={completeAttempt}
+            >
+              Complete
             </button>
           </div>
         </BottomSheet>

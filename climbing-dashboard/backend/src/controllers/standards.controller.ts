@@ -87,6 +87,35 @@ export const saveStandardAttempt = async (
   return res.json(result.attempt);
 };
 
+export const completeStandardsAttempt = async (
+  req: Request,
+  res: Response,
+) => {
+  const { attemptId } = req.params;
+
+  if (typeof attemptId !== 'string') {
+    return res.status(400).json({
+      message: 'attemptId must be a string',
+    });
+  }
+
+  const result = await standardsService.completeStandardsAttempt(attemptId);
+
+  if (!result.completed) {
+    if (result.reason === 'notFound') {
+      return res.status(404).json({
+        message: 'Standards attempt not found',
+      });
+    }
+
+    return res.status(409).json({
+      message: 'This attempt is already completed',
+    });
+  }
+
+  return res.json(result.attempt);
+};
+
 export const deleteLatestStandardsAttempt = async (
   _req: Request,
   res: Response,
