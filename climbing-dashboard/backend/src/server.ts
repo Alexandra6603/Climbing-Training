@@ -2,19 +2,33 @@ import 'dotenv/config';
 import express from 'express';
 import cors from "cors";
 import { standardsRouter } from './routes/standards.route.js';
-import { prisma } from './db/prisma.js';
+import { authRouter } from './routes/auth.route.js';
 
 const app = express();
-app.use(cors());
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  ...(process.env.FRONTEND_URL ?? '').split(',').map((origin) => origin.trim()).filter(Boolean),
+]);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error('Origin is not allowed by CORS'));
+  },
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+}));
 app.use(express.json());
 
 
 app.get('/', (req, res) => {
   res.json({ message: 'Hello from backend!' });
 });
+app.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
 
+app.use('/auth', authRouter);
 app.use("/standards", standardsRouter);
 
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
+const port = Number(process.env.PORT ?? 3000);
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });

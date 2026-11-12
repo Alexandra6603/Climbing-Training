@@ -10,10 +10,10 @@ export const getStandards = async (
 };
 
 export const getStandardsAttempts = async (
-  _req: Request,
+  req: Request,
   res: Response,
 ) => {
-  const attempts = await standardsService.getStandardsAttempts();
+  const attempts = await standardsService.getStandardsAttempts(req.authUser!.id);
   return res.json(attempts);
 };
 
@@ -34,6 +34,7 @@ export const createStandardsAttempt = async (
   }
 
   const result = await standardsService.createStandardsAttempt(
+    req.authUser!.id,
     standardId,
     value,
   );
@@ -67,6 +68,7 @@ export const saveStandardAttempt = async (
   }
 
   const result = await standardsService.saveStandardAttempt(
+    req.authUser!.id,
     attemptId,
     standardId,
     value,
@@ -99,7 +101,7 @@ export const completeStandardsAttempt = async (
     });
   }
 
-  const result = await standardsService.completeStandardsAttempt(attemptId);
+  const result = await standardsService.completeStandardsAttempt(req.authUser!.id, attemptId);
 
   if (!result.completed) {
     if (result.reason === 'notFound') {
@@ -117,10 +119,10 @@ export const completeStandardsAttempt = async (
 };
 
 export const deleteLatestStandardsAttempt = async (
-  _req: Request,
+  req: Request,
   res: Response,
 ) => {
-  const result = await standardsService.deleteLatestStandardsAttempt();
+  const result = await standardsService.deleteLatestStandardsAttempt(req.authUser!.id);
 
   if (!result.deleted) {
     if (result.reason === 'notFound') {

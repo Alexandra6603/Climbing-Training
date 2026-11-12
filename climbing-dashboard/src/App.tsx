@@ -12,6 +12,7 @@ import { Timer } from "./features/timer/Timer";
 import { TimerList } from "./features/timer/list/TimerList";
 import { TimerForm } from "./features/timer/timerForm/TimerForm";
 import { StandardsPage } from "./pages/StandardsPage";
+import { ChooseRolePage } from "./pages/ChooseRolePage";
 
 type AppRoute = {
   path: string;
@@ -69,6 +70,10 @@ const renderRoutes = (routes: AppRoute[]) =>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/choose-role"
+            element={<ProtectedRoute><ChooseRolePage /></ProtectedRoute>}
+          />
   
           {renderRoutes(protectedRoutes)}
   

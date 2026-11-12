@@ -15,12 +15,42 @@ model Standard {
   values StandardAttemptValue[]
 }
 
+model User {
+  id          String        @id @default(cuid())
+  telegramId  String        @unique
+  username    String?
+  firstName   String
+  lastName    String?
+  photoUrl    String?
+  profileType String?
+  isAdmin     Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  sessions    AuthSession[]
+  standardsAttempts StandardsAttempt[]
+}
+
+model AuthSession {
+  tokenHash String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
 model StandardsAttempt {
   id        String   @id @default(cuid())
   date      DateTime
   status    String
+  userId    String?
 
   values StandardAttemptValue[]
+  user   User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model StandardAttemptValue {

@@ -1,12 +1,41 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowDownRight, ArrowUpRight, Check, Mountain, Send } from "lucide-react";
+import { useAuth } from "../features/auth/useAuth";
 
 const telegramBotUrl = import.meta.env.VITE_TELEGRAM_BOT_URL;
-
 const highlights = ["Тренировки и прогресс в одном месте", "План под твои цели", "Всегда под рукой в Telegram"];
 
 export const LoginPage = () => {
-  const [showSetup, setShowSetup] = useState(false);
+  const { user, isLoading, loginWithTelegram } = useAuth();
+  const navigate = useNavigate();
+  const submitted = useRef(false);
+  const [status, setStatus] = useState<'checking' | 'outside' | 'error'>('checking');
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (user) {
+      navigate(user.profileType ? '/dashboard' : '/choose-role', { replace: true });
+      return;
+    }
+
+    const webApp = window.Telegram?.WebApp;
+    webApp?.ready();
+    webApp?.expand();
+    const initData = webApp?.initData;
+    if (!initData) {
+      setStatus('outside');
+      return;
+    }
+    if (submitted.current) return;
+    submitted.current = true;
+
+    loginWithTelegram(initData)
+      .then((authenticatedUser) => {
+        navigate(authenticatedUser.profileType ? '/dashboard' : '/choose-role', { replace: true });
+      })
+      .catch(() => setStatus('error'));
+  }, [isLoading, user, loginWithTelegram, navigate]);
 
   return (
     <main className="login-page">
@@ -38,25 +67,21 @@ export const LoginPage = () => {
             <h2 id="login-title">Входи и<br />забирайся выше.</h2>
             <p className="panel-description">Авторизуйся через Telegram — это быстро, безопасно и удобно.</p>
 
-            {telegramBotUrl ? (
+            {status === 'checking' && <p className="telegram-button login-status" role="status">Проверяем авторизацию Telegram…</p>}
+            {status === 'outside' && (telegramBotUrl ? (
               <a className="telegram-button" href={telegramBotUrl}>
-                <Send size={18} fill="currentColor" />
-                <span>Продолжить в Telegram</span>
-                <ArrowUpRight size={17} className="button-arrow" />
+                <Send size={18} fill="currentColor" /><span>Открыть в Telegram</span><ArrowUpRight size={17} className="button-arrow" />
               </a>
-            ) : (
-              <button className="telegram-button" type="button" onClick={() => setShowSetup(true)}>
-                <Send size={18} fill="currentColor" />
-                <span>Продолжить в Telegram</span>
-                <ArrowUpRight size={17} className="button-arrow" />
-              </button>
+            ) : <p className="setup-message" role="status">Открой Crux через кнопку меню своего Telegram-бота.</p>)}
+            {status === 'error' && (
+              <div className="auth-error" role="alert">
+                <p>Не удалось проверить вход. Убедись, что backend запущен и настроен.</p>
+                <button type="button" onClick={() => window.location.reload()}>Попробовать снова</button>
+              </div>
             )}
 
-            {showSetup && !telegramBotUrl && (
-              <p className="setup-message" role="status">Подключи ссылку на бота через <code>VITE_TELEGRAM_BOT_URL</code>, чтобы включить вход.</p>
-            )}
             <div className="panel-divider"><span /> <span>БЕЗОПАСНЫЙ ВХОД</span> <span /></div>
-            <p className="privacy-note">Нажимая кнопку, ты продолжишь в Telegram. Мы не получаем доступ к твоим сообщениям.</p>
+            <p className="privacy-note">Данные Telegram проверяются на сервере. Пароль и доступ к сообщениям не нужны.</p>
           </section>
           <div className="panel-foot"><span>01 / 03</span><div className="panel-progress"><i /></div><span>СТАРТ</span></div>
         </div>

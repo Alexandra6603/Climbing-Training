@@ -57,6 +57,10 @@ button, a { font: inherit; }
 .telegram-button { display: flex; width: 100%; min-height: 54px; align-items: center; justify-content: center; gap: 11px; border: 0; border-radius: 3px; color: #14160f; background: var(--acid); text-decoration: none; font-size: 12px; font-weight: 720; cursor: pointer; transition: background .18s, transform .18s; }
 .telegram-button:hover { transform: translateY(-2px); background: #d4ff80; }
 .telegram-button:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+.login-status { color: #202319; }
+.auth-error { padding: 14px; border: 1px solid #78413b; background: #31201e; color: #f0c5be; font-size: 12px; line-height: 1.6; }
+.auth-error p { margin: 0 0 10px; }
+.auth-error button { padding: 0; border: 0; color: var(--acid); background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; }
 .button-arrow { margin-left: auto; margin-right: 15px; }
 .telegram-button > svg:first-child { margin-left: 13px; }
 .telegram-button > span { flex: 1; text-align: center; }
@@ -71,6 +75,28 @@ button, a { font: inherit; }
 .panel-progress i { display: block; width: 34%; height: 100%; background: var(--acid); }
 .login-footer { min-height: 64px; border-top: 1px solid rgba(255,255,255,.1); color: #73766c; font-size: 8px; letter-spacing: 1px; }
 .footer-star { margin-left: 5px; color: var(--acid); font-size: 12px; }
+.auth-loading { display: grid; min-height: 100vh; place-items: center; color: #707368; background: #11120f; font-size: 13px; }
+.role-page { --acid: #c6f36a; min-height: 100vh; padding: 0 clamp(24px, 7vw, 108px); color: #f4f2ed; background: radial-gradient(ellipse at 50% 85%, rgba(66,79,44,.16), transparent 42%), #11120f; }
+.role-top { display: flex; height: 82px; align-items: center; justify-content: space-between; border-bottom: 1px solid #ffffff1a; }
+.role-top > span { color: #7c7f74; font-size: 9px; letter-spacing: 1.4px; }
+.role-content { width: min(100%, 610px); margin: 0 auto; padding: clamp(56px, 10vh, 105px) 0 50px; }
+.role-eyebrow { margin: 0 0 19px; color: var(--acid); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
+.role-content h1 { margin: 0; font-size: clamp(44px, 7vw, 68px); line-height: 1.02; letter-spacing: -3.8px; font-weight: 600; }
+.role-content h1 span { color: var(--acid); }
+.role-subtitle { max-width: 490px; margin: 18px 0 31px; color: #a8aaa1; font-size: 14px; line-height: 1.75; }
+.role-options { display: grid; gap: 12px; }
+.role-option { position: relative; display: flex; width: 100%; min-height: 90px; align-items: center; gap: 17px; padding: 18px; border: 1px solid #373a32; border-radius: 4px; color: #f4f2ed; background: #1a1c17; text-align: left; cursor: pointer; transition: border-color .18s, background .18s, transform .18s; }
+.role-option:hover:not(:disabled) { transform: translateY(-2px); border-color: #849b5a; background: #20231b; }
+.role-option:disabled { opacity: .72; cursor: wait; }
+.role-icon { display: grid; width: 46px; height: 46px; flex: 0 0 auto; place-items: center; border: 1px solid #435033; border-radius: 12px; color: var(--acid); background: #282e21; }
+.role-option-copy { display: grid; flex: 1; gap: 5px; }
+.role-option-copy strong { font-size: 15px; font-weight: 650; }
+.role-option-copy small { color: #96998e; font-size: 11px; }
+.role-arrow { color: #999c91; }
+.role-saving { position: absolute; right: 50px; bottom: 6px; color: var(--acid); font-size: 9px; }
+.role-error { margin: 13px 0 0; color: #f0a69a; font-size: 12px; }
+.role-user { margin: 25px 0 0; color: #777a70; font-size: 11px; }
+.role-user strong { color: #d0d2ca; font-weight: 550; }
 
 @media (max-width: 760px) {
   .login-page { padding: 0 24px; }
@@ -88,4 +114,10 @@ button, a { font: inherit; }
   .login-page { padding: 0 18px; }
   .header-note { font-size: 7px; }
   .login-copy h1 { font-size: 56px; }
+}
+@media (max-width: 500px) {
+  .role-page { padding: 0 20px; }
+  .role-content h1 { letter-spacing: -2.4px; }
+  .role-option { gap: 12px; padding: 14px; }
+  .role-option-copy small { max-width: 200px; line-height: 1.45; }
 }

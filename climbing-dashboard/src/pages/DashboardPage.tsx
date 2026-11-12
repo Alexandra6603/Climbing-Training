@@ -6,7 +6,7 @@ export const DashboardPage = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold">
-        Welcome, {user?.email}
+        Привет, {user?.firstName}
       </h1>
 
       <button

@@ -7,9 +7,11 @@ import {
     saveStandardAttempt
   } from "../controllers/standards.controller.js";
 import { Router } from "express";
+import { requireAuth } from "../auth/auth.middleware.js";
 
 export const standardsRouter = Router();
 
+standardsRouter.use(requireAuth);
 standardsRouter.get('/', getStandards);
 standardsRouter.get('/attempts', getStandardsAttempts);
 standardsRouter.post('/attempts', createStandardsAttempt);

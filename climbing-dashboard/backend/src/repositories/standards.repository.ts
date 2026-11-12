@@ -6,8 +6,9 @@ export const standardsRepository = {
     return prisma.standard.findMany();
   },
 
-  getStandardsAttempts() {
+  getStandardsAttempts(userId: string) {
     return prisma.standardsAttempt.findMany({
+      where: { userId },
       orderBy: {
         date: 'desc',
       },
@@ -17,11 +18,12 @@ export const standardsRepository = {
     });
   },
 
-  createAttempt(standardId: string, value: number) {
+  createAttempt(userId: string, standardId: string, value: number) {
     return prisma.standardsAttempt.create({
       data: {
         date: new Date(),
         status: 'inProgress',
+        userId,
         values: {
           create: {
             standard: {
@@ -37,17 +39,18 @@ export const standardsRepository = {
     });
   },
 
-  findLatestAttempt() {
+  findLatestAttempt(userId: string) {
     return prisma.standardsAttempt.findFirst({
+      where: { userId },
       orderBy: {
         date: 'desc',
       },
     });
   },
 
-  findUniqueAttempt(attemptId: string) {
+  findUniqueAttempt(attemptId: string, userId: string) {
     return prisma.standardsAttempt.findUnique({
-      where: { id: attemptId },
+      where: { id: attemptId, userId },
     });
   },
 

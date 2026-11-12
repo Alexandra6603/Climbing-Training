@@ -5,8 +5,8 @@ export const standardsService = {
     return standardsRepository.getStandards();
   },
 
-  async getStandardsAttempts() {
-    const attempts = await standardsRepository.getStandardsAttempts();
+  async getStandardsAttempts(userId: string) {
+    const attempts = await standardsRepository.getStandardsAttempts(userId);
   
     return attempts.map((attempt) => ({
       id: attempt.id,
@@ -21,8 +21,8 @@ export const standardsService = {
     }));
   },
 
-  async createStandardsAttempt(standardId: string, value: number) {
-    const latestAttempt = await standardsRepository.findLatestAttempt();
+  async createStandardsAttempt(userId: string, standardId: string, value: number) {
+    const latestAttempt = await standardsRepository.findLatestAttempt(userId);
 
     if (latestAttempt) {
       const nextAvailableDate = addMonths(latestAttempt.date, 3);
@@ -35,7 +35,7 @@ export const standardsService = {
       }
     }
   
-    const attempt = await standardsRepository.createAttempt(standardId, value)
+    const attempt = await standardsRepository.createAttempt(userId, standardId, value)
   
     return {
       created: true as const,
@@ -44,11 +44,12 @@ export const standardsService = {
   },
   
   async saveStandardAttempt(
+    userId: string,
     attemptId: string,
     standardId: string,
     value: number,
   ) {
-    const attempt = await standardsRepository.findUniqueAttempt(attemptId)
+    const attempt = await standardsRepository.findUniqueAttempt(attemptId, userId)
   
     if (!attempt) {
       return { saved: false as const, reason: 'notFound' as const };
@@ -68,8 +69,8 @@ export const standardsService = {
     };
   },
 
-  async completeStandardsAttempt(attemptId: string) {
-    const attempt = await standardsRepository.findUniqueAttempt(attemptId);
+  async completeStandardsAttempt(userId: string, attemptId: string) {
+    const attempt = await standardsRepository.findUniqueAttempt(attemptId, userId);
 
     if (!attempt) {
       return { completed: false as const, reason: 'notFound' as const };
@@ -87,8 +88,8 @@ export const standardsService = {
     };
   },
 
-  async deleteLatestStandardsAttempt() {
-    const latestAttempt = await standardsRepository.findLatestAttempt()
+  async deleteLatestStandardsAttempt(userId: string) {
+    const latestAttempt = await standardsRepository.findLatestAttempt(userId)
 
     if (!latestAttempt) {
       return { deleted: false as const, reason: 'notFound' as const };
