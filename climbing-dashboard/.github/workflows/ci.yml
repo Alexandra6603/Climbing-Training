@@ -1,0 +1,110 @@
+name: Project checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vercel:
+    name: Vercel · frontend build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+  render:
+    name: Render · backend build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Build backend
+        run: npm run build
+
+  prisma:
+    name: Prisma · schema and client
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/climbing_dashboard
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+  summary:
+    name: Deployment checks summary
+    if: always()
+    needs: [vercel, render, prisma]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report results
+        env:
+          VERCEL_RESULT: ${{ needs.vercel.result }}
+          RENDER_RESULT: ${{ needs.render.result }}
+          PRISMA_RESULT: ${{ needs.prisma.result }}
+        run: |
+          {
+            echo "## Project checks"
+            echo ""
+            echo "| Service | Result |"
+            echo "| --- | --- |"
+            echo "| Vercel · frontend build | ${VERCEL_RESULT} |"
+            echo "| Render · backend build | ${RENDER_RESULT} |"
+            echo "| Prisma · schema and client | ${PRISMA_RESULT} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$VERCEL_RESULT" != "success" ] || [ "$RENDER_RESULT" != "success" ] || [ "$PRISMA_RESULT" != "success" ]; then
+            exit 1
+          fi
