@@ -7,7 +7,7 @@ const telegramBotUrl = import.meta.env.VITE_TELEGRAM_BOT_URL;
 const highlights = ["Тренировки и прогресс в одном месте", "План под твои цели", "Всегда под рукой в Telegram"];
 
 export const LoginPage = () => {
-  const { user, isLoading, loginWithTelegram } = useAuth();
+  const { user, isLoading, loginWithTelegram, loginAsLocalDev } = useAuth();
   const navigate = useNavigate();
   const submitted = useRef(false);
   const [status, setStatus] = useState<'checking' | 'outside' | 'error'>('checking');
@@ -16,6 +16,16 @@ export const LoginPage = () => {
     if (isLoading) return;
     if (user) {
       navigate(user.profileType ? '/dashboard' : '/choose-role', { replace: true });
+      return;
+    }
+
+    const isLocalDev = import.meta.env.DEV && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (isLocalDev) {
+      if (submitted.current) return;
+      submitted.current = true;
+      loginAsLocalDev()
+        .then(() => navigate('/dashboard', { replace: true }))
+        .catch(() => setStatus('error'));
       return;
     }
 
@@ -35,7 +45,7 @@ export const LoginPage = () => {
         navigate(authenticatedUser.profileType ? '/dashboard' : '/choose-role', { replace: true });
       })
       .catch(() => setStatus('error'));
-  }, [isLoading, user, loginWithTelegram, navigate]);
+  }, [isLoading, user, loginWithTelegram, loginAsLocalDev, navigate]);
 
   return (
     <main className="login-page">

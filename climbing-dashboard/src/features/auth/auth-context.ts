@@ -15,6 +15,7 @@ export type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   loginWithTelegram: (initData: string) => Promise<User>;
+  loginAsLocalDev: () => Promise<User>;
   chooseProfileType: (profileType: 'CLIMBER' | 'TRAINER') => Promise<User>;
   logout: () => Promise<void>;
 };

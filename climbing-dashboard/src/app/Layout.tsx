@@ -1,36 +1,37 @@
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useState } from 'react';
-import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '../features/auth/useAuth';
-import { Settings } from "lucide-react";
+import { Settings, Mountain } from "lucide-react";
 
 type Props = {
   children: ReactNode;
 };
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/workouts', label: 'Workouts' },
-  { to: '/standards', label: 'Standards' },
-  { to: '/timer', label: 'Timer' },
+  { to: '/dashboard', label: 'Обзор' },
+  { to: '/workouts', label: 'Тренировки' },
+  { to: '/standards', label: 'Нормативы' },
+  { to: '/timer', label: 'Таймер' },
   // { to: '/goals', label: 'Goals' },
 ] as const;
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  isActive
-    ? 'text-blue-600 font-medium'
-    : 'text-gray-500 hover:text-gray-900 dark:hover:text-white';
+  `app-nav-link${isActive ? ' is-active' : ''}`;
 
 export const Layout = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
   const { logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors">
-      <header className="border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
-          <nav className="min-w-0 flex flex-1 gap-5 overflow-x-auto whitespace-nowrap py-1 sm:gap-6">
+    <div className="app-shell dark">
+      <header className="app-header">
+        <div className="app-header-inner">
+          <a className="app-brand" href="/dashboard" aria-label="Crux — главная">
+            <span className="app-brand-mark"><Mountain size={18} strokeWidth={2.5} /></span>
+            <span>crux<span>.</span></span>
+          </a>
+          <nav className="app-nav">
             {navItems.map(({ to, label }) => (
               <NavLink key={to} to={to} className={navLinkClass}>
                 {label}
@@ -40,33 +41,27 @@ export const Layout = ({ children }: Props) => {
           
           <button
             onClick={() => setOpen((prev) => !prev)}
-            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="app-settings-button"
+            aria-label="Открыть настройки"
           >
             <Settings className="w-5 h-5 cursor-pointer" />
           </button>
 
           {open && (
-            <div className="absolute right-4 top-16 w-48 bg-white dark:bg-gray-900 border rounded shadow-md p-2 space-y-2">
-              <button className="w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800">
-                Profile
-              </button>
-
-              {/* <button className="w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800"> */}
-              <ThemeToggle />
-              {/* </button> */}
-
+            <div className="app-settings-menu">
+              <span className="app-settings-label">АККАУНТ</span>
               <button
                 onClick={logout}
-                className="w-full text-left px-2 py-1 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="app-logout-button"
               >
-                Logout
+                Выйти из аккаунта
               </button>
             </div>
           )}
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-6">
+      <main className="app-main">
         {children}
       </main>
     </div>

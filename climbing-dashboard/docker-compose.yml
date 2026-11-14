@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: crux
+      POSTGRES_PASSWORD: crux_local
+      POSTGRES_DB: crux_dev
+    ports:
+      - "54329:5432"
+    volumes:
+      - crux-local-postgres:/var/lib/postgresql/data
+
+volumes:
+  crux-local-postgres:

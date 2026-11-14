@@ -5,9 +5,12 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "dev:local": "DATABASE_URL=postgresql://crux:crux_local@localhost:54329/crux_dev DEV_AUTH_ENABLED=true tsx watch src/server.ts",
     "build": "prisma generate && tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "db:deploy": "prisma migrate deploy",
+    "db:local:deploy": "DATABASE_URL=postgresql://crux:crux_local@localhost:54329/crux_dev DIRECT_URL=postgresql://crux:crux_local@localhost:54329/crux_dev prisma migrate deploy",
+    "db:local:seed": "DATABASE_URL=postgresql://crux:crux_local@localhost:54329/crux_dev tsx prisma/seed.ts",
     "seed": "tsx prisma/seed.ts"
   },
   "keywords": [],

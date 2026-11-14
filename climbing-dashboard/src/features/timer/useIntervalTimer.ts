@@ -3,7 +3,7 @@ import type { TimerConfig, TimerPhase } from "./types";
 
 export const useIntervalTimer = (config: TimerConfig) => {
   const [phase, setPhase] = useState<TimerPhase>("idle");
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState<number>(config.prep);
   const [currentCycle, setCurrentCycle] = useState<number>(1);
   const [currentSet, setCurrentSet] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);
@@ -200,7 +200,7 @@ export const useIntervalTimer = (config: TimerConfig) => {
   const reset = () => {
     setIsPaused(false);
     setPhase("idle");
-    setTimeLeft(0);
+    setTimeLeft(config.prep);
     setCurrentCycle(1);
     setCurrentSet(1);
   };

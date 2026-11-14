@@ -3,6 +3,7 @@ import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../auth/auth.middleware.js';
 import { validateTelegramInitData } from '../auth/telegram.js';
 import { createSession, publicUser } from '../auth/session.js';
+import { timersService } from '../services/timers.service.js';
 
 export const authRouter = Router();
 
@@ -46,6 +47,35 @@ authRouter.post('/telegram', async (req, res) => {
     },
   });
   const session = await createSession(user.id);
+  await timersService.ensureDefaults(user.id);
+
+  return res.status(200).json({
+    token: session.token,
+    expiresAt: session.expiresAt,
+    user: publicUser(user),
+  });
+});
+
+authRouter.post('/dev', async (req, res) => {
+  const origin = req.get('origin') ?? '';
+  const isLocalOrigin = /^http:\/\/(localhost|127\.0\.0\.1):5173$/.test(origin);
+  if (process.env.NODE_ENV === 'production' || process.env.DEV_AUTH_ENABLED !== 'true' || !isLocalOrigin) {
+    return res.status(404).json({ message: 'Not found' });
+  }
+
+  const user = await prisma.user.upsert({
+    where: { telegramId: 'local-dev-user' },
+    create: {
+      telegramId: 'local-dev-user',
+      username: 'local_dev',
+      firstName: 'Локальный тестовый аккаунт',
+      profileType: 'CLIMBER',
+      isAdmin: true,
+    },
+    update: {},
+  });
+  const session = await createSession(user.id);
+  await timersService.ensureDefaults(user.id);
 
   return res.status(200).json({
     token: session.token,

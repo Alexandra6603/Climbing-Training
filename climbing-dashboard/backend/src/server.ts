@@ -3,6 +3,7 @@ import express from 'express';
 import cors from "cors";
 import { standardsRouter } from './routes/standards.route.js';
 import { authRouter } from './routes/auth.route.js';
+import { timersRouter } from './routes/timers.route.js';
 
 const app = express();
 const allowedOrigins = new Set([
@@ -27,6 +28,7 @@ app.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
 
 app.use('/auth', authRouter);
 app.use("/standards", standardsRouter);
+app.use('/timers', timersRouter);
 
 const port = Number(process.env.PORT ?? 3000);
 app.listen(port, () => {

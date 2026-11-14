@@ -23,6 +23,12 @@ const standards = [
   { id: 'shoulderMob', name: 'Shoulder mobility', unit: 'sm' },
 ];
 
+const timers = [
+  { name: 'Тренировка 1', prep: 5, work: 7, rest: 3, cycles: 3, sets: 2, restBetweenSets: 15 },
+  { name: 'Тренировка 2', prep: 10, work: 7, rest: 3, cycles: 12, sets: 3, restBetweenSets: 180 },
+  { name: 'Тренировка 3', prep: 10, work: 40, rest: 20, cycles: 3, sets: 3, restBetweenSets: 240 },
+];
+
 async function main() {
   for (const standard of standards) {
     await prisma.standard.upsert({
@@ -30,6 +36,15 @@ async function main() {
       create: standard,
       update: { name: standard.name, unit: standard.unit },
     });
+  }
+
+  const users = await prisma.user.findMany({ select: { id: true } });
+  for (const user of users) {
+    if (await prisma.timer.count({ where: { userId: user.id } }) === 0) {
+      await prisma.timer.createMany({
+        data: timers.map((timer) => ({ ...timer, userId: user.id })),
+      });
+    }
   }
 }
 

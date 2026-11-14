@@ -31,6 +31,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return data.user;
   }, []);
 
+  const loginAsLocalDev = useCallback(async () => {
+    const { data } = await api.post<{ token: string; user: User }>('/auth/dev');
+    sessionStorage.setItem(SESSION_KEY, data.token);
+    setUser(data.user);
+    return data.user;
+  }, []);
+
   const chooseProfileType = useCallback(async (profileType: 'CLIMBER' | 'TRAINER') => {
     const { data } = await api.put<{ user: User }>('/auth/profile-type', { profileType });
     setUser(data.user);
@@ -44,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, loginWithTelegram, chooseProfileType, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, loginWithTelegram, loginAsLocalDev, chooseProfileType, logout }}>
       {children}
     </AuthContext.Provider>
   );
