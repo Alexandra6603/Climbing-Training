@@ -33,13 +33,15 @@ export const createStandardsAttempt = async (
     });
   }
 
-  const result = await standardsService.createStandardsAttempt(
-    req.authUser!.id,
-    standardId,
-    value,
-  );
+  let result;
+  try {
+    result = await standardsService.createStandardsAttempt(req.authUser!.id, standardId, value);
+  } catch (error) {
+    return res.status(400).json({ message: error instanceof Error ? error.message : 'Invalid standard value' });
+  }
 
   if (!result.created) {
+    if (result.nextAvailableDate === null) return res.status(404).json({ message: 'Standard not found' });
     return res.status(409).json({
       message: 'You can only add an attempt every 3 months',
       nextAvailableDate: result.nextAvailableDate,
@@ -67,12 +69,12 @@ export const saveStandardAttempt = async (
     });
   }
 
-  const result = await standardsService.saveStandardAttempt(
-    req.authUser!.id,
-    attemptId,
-    standardId,
-    value,
-  );
+  let result;
+  try {
+    result = await standardsService.saveStandardAttempt(req.authUser!.id, attemptId, standardId, value);
+  } catch (error) {
+    return res.status(400).json({ message: error instanceof Error ? error.message : 'Invalid standard value' });
+  }
 
   if (!result.saved) {
     if (result.reason === 'notFound') {

@@ -141,17 +141,23 @@ button, a { font: inherit; }
 .timer-sound-toggle:hover { border-color: #819752; background: #292b25; }
 .timer-eyebrow { margin: 0 0 12px; color: var(--acid); font-size: 9px; font-weight: 700; letter-spacing: 1.7px; }
 .timer-title { overflow-wrap: anywhere; margin: 0; color: #f4f2ed; font-size: clamp(24px, 5vw, 34px); font-weight: 600; letter-spacing: -1.3px; }
-.timer-status { display: inline-flex; align-items: center; gap: 9px; margin-top: 27px; color: #a8aaa1; font-size: 12px; }
+.timer-status { display: inline-flex; align-items: center; gap: 10px; margin-top: 27px; color: #a8aaa1; font-size: 18px; line-height: 1.3; }
 .timer-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--acid); box-shadow: 0 0 12px #c6f36a88; }
 .timer-status.is-paused .timer-status-dot { background: #e6b45c; box-shadow: 0 0 12px #e6b45c88; }
-.timer-count { margin-top: 12px; color: var(--acid); font-size: clamp(92px, 22vw, 144px); font-variant-numeric: tabular-nums; font-weight: 580; line-height: 1; letter-spacing: -8px; }
+.timer-count { margin-top: 12px; color: var(--acid); font-size: clamp(92px, 22vw, 144px); font-variant-numeric: tabular-nums; font-weight: 580; line-height: 1; letter-spacing: -8px; transition: color .2s ease; }
+.timer-count.phase-rest, .timer-count.phase-restBetweenSets { color: #67c9ff; }
+.timer-count.phase-prep { color: #e6b45c; }
+.timer-count.phase-finished { color: #c6f36a; }
+.timer-status.phase-work .timer-status-dot { background: var(--acid); box-shadow: 0 0 12px #c6f36a88; }
+.timer-status.phase-rest .timer-status-dot, .timer-status.phase-restBetweenSets .timer-status-dot { background: #67c9ff; box-shadow: 0 0 12px #67c9ff88; }
+.timer-status.phase-prep .timer-status-dot { background: #e6b45c; box-shadow: 0 0 12px #e6b45c88; }
 .timer-unit { margin-top: 8px; color: #777a70; font-size: 9px; font-weight: 650; letter-spacing: 2px; }
 .timer-progress-meta { display: flex; justify-content: space-between; gap: 16px; margin-top: 40px; color: #777a70; font-size: 9px; font-weight: 650; letter-spacing: 1px; }
 .timer-progress-meta strong { color: #d9dcd2; font-size: 12px; }
 .timer-progress { height: 3px; margin-top: 11px; background: #30322b; }
 .timer-progress i { display: block; height: 100%; background: var(--acid); transition: width .25s ease; }
 .timer-controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 30px; }
-.timer-primary, .timer-reset { min-height: 50px; border-radius: 3px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .18s, border-color .18s, transform .18s; }
+.timer-primary, .timer-reset { min-height: 50px; border-radius: 3px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background .18s, border-color .18s, transform .18s; }
 .timer-primary { padding: 0 22px; border: 0; color: #14160f; background: var(--acid); }
 .timer-primary:hover { transform: translateY(-1px); background: #d4ff80; }
 .timer-reset { padding: 0 18px; border: 1px solid #41433c; color: #c3c5bd; background: transparent; }

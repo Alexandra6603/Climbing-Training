@@ -74,7 +74,7 @@ model StandardsAttempt {
 model StandardAttemptValue {
   attemptId  String
   standardId String
-  value      Float
+  value      Int
 
   attempt  StandardsAttempt @relation(fields: [attemptId], references: [id])
   standard Standard         @relation(fields: [standardId], references: [id])

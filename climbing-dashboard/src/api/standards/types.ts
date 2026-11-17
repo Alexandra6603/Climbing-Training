@@ -1,7 +1,7 @@
 export interface Standard {
   id: string;
   name: string;
-  unit: "kg" | "sec" | "rep";
+  unit: "kg" | "cm" | "sec" | "rep";
 }
 
 export interface StandardsAttempt {

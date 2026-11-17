@@ -15,12 +15,12 @@ const standards = [
   { id: 'weightedPullUps', name: 'Weighted pull ups', unit: 'kg' },
   { id: 'pushUps', name: 'Push ups', unit: 'rep' },
   { id: 'plank', name: 'Plank/Hold', unit: 'sec' },
-  { id: 'jump', name: 'Jump', unit: 'sm' },
+  { id: 'jump', name: 'Jump', unit: 'cm' },
   { id: 'hang', name: 'Hang', unit: 'sec' },
   { id: 'pullUps', name: 'Pull ups', unit: 'rep' },
-  { id: 'boxSplit', name: 'Box split', unit: 'sm' },
-  { id: 'KneeToWall', name: 'Knee to wall', unit: 'sm' },
-  { id: 'shoulderMob', name: 'Shoulder mobility', unit: 'sm' },
+  { id: 'boxSplit', name: 'Box split', unit: 'cm' },
+  { id: 'KneeToWall', name: 'Knee to wall', unit: 'cm' },
+  { id: 'shoulderMob', name: 'Shoulder mobility', unit: 'cm' },
 ];
 
 const timers = [

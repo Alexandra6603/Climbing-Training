@@ -3,7 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { standardsApi } from "../../api/standards/service";
 import { BottomSheet } from "../../shared/ui/bottomSheet";
 import type { CurrentAttemptEdit, Standard, StandardsAttempt } from "../../api/standards/types";
-import { isValidDecimal, parseDecimal } from "../../shared/functions";
+import { isValidDecimal } from "../../shared/functions";
 import axios from "axios";
 
 const addMonths = (date: Date, months: number): Date => {
@@ -135,11 +135,12 @@ export const Standards = () => {
     let value = e.target.value;
     if (!currentAttempt) return;
 
-    if (!isValidDecimal(value)) {
+    const unit = standards.find((standard) => standard.id === currentAttempt.standardId)?.unit;
+    if (!isValidDecimal(value) || ((unit === 'sec' || unit === 'rep') && /[.,]/.test(value))) {
       return;
     }
 
-    value = parseDecimal(value)?.toString() ?? '';
+    value = value.replace(',', '.');
 
     setCurrentAttempt({
       ...currentAttempt,
@@ -202,6 +203,11 @@ export const Standards = () => {
   
       alert('An unexpected error occurred');
     }
+  };
+
+  const closeValueEditor = () => {
+    setIsEditAttemptOpen(false);
+    setCurrentAttempt(null);
   };
 
   const completeAttempt = async () => {
@@ -320,7 +326,7 @@ export const Standards = () => {
                       }
                     }}
                   >
-                    {attempt.values[standard.id] ?? "-"}
+                    {attempt.values[standard.id] === undefined ? "-" : Number(attempt.values[standard.id]).toLocaleString('ru-RU', { maximumFractionDigits: 3 })}
                   </td>
                 ))}
               </tr>
@@ -328,11 +334,11 @@ export const Standards = () => {
           </tbody>
         </table>
         </div>
-        <BottomSheet isOpen={isEditAttemptOpen} onClose={() => setIsEditAttemptOpen(false)} title={standards.find((standard) => standard.id === currentAttempt?.standardId)?.name ?? ''}>
+        <BottomSheet isOpen={isEditAttemptOpen} onClose={closeValueEditor} title={standards.find((standard) => standard.id === currentAttempt?.standardId)?.name ?? ''}>
           <div className="flex flex-col gap-2">
             <input 
               type="text"
-              inputMode="decimal"
+              inputMode={['sec', 'rep'].includes(standards.find((standard) => standard.id === currentAttempt?.standardId)?.unit ?? '') ? 'numeric' : 'decimal'}
               placeholder="Value" 
               className="border p-2 rounded" 
               ref={inputRef}

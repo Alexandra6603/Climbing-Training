@@ -59,6 +59,44 @@ export const Timer = () => {
       .catch(() => setLoadingError("Не удалось загрузить таймер. Возможно, он уже удалён."));
   }, [id]);
 
+  useEffect(() => {
+    if (!("wakeLock" in navigator)) return;
+
+    let isActive = true;
+    let wakeLock: WakeLockSentinel | null = null;
+
+    const keepScreenAwake = async () => {
+      if (!isActive || document.visibilityState !== "visible" || wakeLock) return;
+
+      try {
+        const requestedWakeLock = await navigator.wakeLock.request("screen");
+        if (!isActive) {
+          await requestedWakeLock.release();
+          return;
+        }
+        wakeLock = requestedWakeLock;
+        wakeLock.addEventListener("release", () => {
+          wakeLock = null;
+        });
+      } catch {
+        // Wake Lock can be unavailable in embedded browsers or when the device is in low-power mode.
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void keepScreenAwake();
+    };
+
+    void keepScreenAwake();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      isActive = false;
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (wakeLock) void wakeLock.release();
+    };
+  }, []);
+
   const { phase, timeLeft, currentCycle, currentSet, isPaused, start, pause, resume, reset } =
     useIntervalTimer(config ?? fallbackConfig);
 
@@ -133,12 +171,12 @@ export const Timer = () => {
         </button>
         <p className="timer-eyebrow">ИНТЕРВАЛЬНАЯ ТРЕНИРОВКА</p>
         <h1 className="timer-title">{config.name || "Таймер"}</h1>
-        <div className={`timer-status${isPaused ? " is-paused" : ""}`}>
+        <div className={`timer-status${isPaused ? " is-paused" : ""} phase-${phase}`}>
           <span className="timer-status-dot" />
           {phase === "idle" ? "Готов к старту" : getTimerStatusLabel({ phase, isPaused })}
         </div>
 
-        <div className="timer-count" aria-live="polite">{phase === "idle" ? config.prep : timeLeft}</div>
+        <div className={`timer-count phase-${phase}`} aria-live="polite">{phase === "idle" ? config.prep : timeLeft}</div>
         <div className="timer-unit">СЕКУНД</div>
 
         <div className="timer-progress-meta">

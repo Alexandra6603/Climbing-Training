@@ -6,6 +6,10 @@ export const standardsRepository = {
     return prisma.standard.findMany();
   },
 
+  findStandard(id: string) {
+    return prisma.standard.findUnique({ where: { id } });
+  },
+
   getStandardsAttempts(userId: string) {
     return prisma.standardsAttempt.findMany({
       where: { userId },
@@ -13,7 +17,7 @@ export const standardsRepository = {
         date: 'desc',
       },
       include: {
-        values: true,
+        values: { include: { standard: true } },
       },
     });
   },
@@ -34,7 +38,7 @@ export const standardsRepository = {
         },
       },
       include: {
-        values: true,
+        values: { include: { standard: true } },
       },
     });
   },
@@ -76,7 +80,7 @@ export const standardsRepository = {
   updatedAttempt(attemptId: string) {
     return prisma.standardsAttempt.findUniqueOrThrow({
       where: { id: attemptId },
-      include: { values: true },
+      include: { values: { include: { standard: true } } },
     });
   },
 
@@ -84,7 +88,7 @@ export const standardsRepository = {
     return prisma.standardsAttempt.update({
       where: { id: attemptId },
       data: { status: 'completed' },
-      include: { values: true },
+      include: { values: { include: { standard: true } } },
     });
   },
 
