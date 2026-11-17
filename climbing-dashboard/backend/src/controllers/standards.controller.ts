@@ -29,7 +29,7 @@ export const createStandardsAttempt = async (
     !Number.isFinite(value)
   ) {
     return res.status(400).json({
-      message: 'standardId must be a string and value must be a finite number',
+      message: 'Укажите норматив и корректное числовое значение.',
     });
   }
 
@@ -37,13 +37,13 @@ export const createStandardsAttempt = async (
   try {
     result = await standardsService.createStandardsAttempt(req.authUser!.id, standardId, value);
   } catch (error) {
-    return res.status(400).json({ message: error instanceof Error ? error.message : 'Invalid standard value' });
+    return res.status(400).json({ message: error instanceof Error ? error.message : 'Некорректное значение норматива.' });
   }
 
   if (!result.created) {
-    if (result.nextAvailableDate === null) return res.status(404).json({ message: 'Standard not found' });
+    if (result.nextAvailableDate === null) return res.status(404).json({ message: 'Норматив не найден.' });
     return res.status(409).json({
-      message: 'You can only add an attempt every 3 months',
+      message: 'Новую попытку можно добавить не чаще одного раза в три месяца.',
       nextAvailableDate: result.nextAvailableDate,
     });
   }
@@ -65,7 +65,7 @@ export const saveStandardAttempt = async (
     !Number.isFinite(value)
   ) {
     return res.status(400).json({
-      message: 'attemptId and standardId must be strings, and value must be a finite number',
+      message: 'Укажите попытку, норматив и корректное числовое значение.',
     });
   }
 
@@ -73,18 +73,18 @@ export const saveStandardAttempt = async (
   try {
     result = await standardsService.saveStandardAttempt(req.authUser!.id, attemptId, standardId, value);
   } catch (error) {
-    return res.status(400).json({ message: error instanceof Error ? error.message : 'Invalid standard value' });
+    return res.status(400).json({ message: error instanceof Error ? error.message : 'Некорректное значение норматива.' });
   }
 
   if (!result.saved) {
     if (result.reason === 'notFound') {
       return res.status(404).json({
-        message: 'Standards attempt not found',
+        message: 'Попытка не найдена.',
       });
     }
 
     return res.status(409).json({
-      message: 'Cannot edit a completed attempt',
+      message: 'Завершённую попытку нельзя изменить.',
     });
   }
 
@@ -99,7 +99,7 @@ export const completeStandardsAttempt = async (
 
   if (typeof attemptId !== 'string') {
     return res.status(400).json({
-      message: 'attemptId must be a string',
+      message: 'Не удалось определить попытку.',
     });
   }
 
@@ -108,12 +108,12 @@ export const completeStandardsAttempt = async (
   if (!result.completed) {
     if (result.reason === 'notFound') {
       return res.status(404).json({
-        message: 'Standards attempt not found',
+        message: 'Попытка не найдена.',
       });
     }
 
     return res.status(409).json({
-      message: 'This attempt is already completed',
+      message: 'Эта попытка уже завершена.',
     });
   }
 
@@ -129,12 +129,12 @@ export const deleteLatestStandardsAttempt = async (
   if (!result.deleted) {
     if (result.reason === 'notFound') {
       return res.status(404).json({
-        message: 'No standards attempts found',
+        message: 'Попыток не найдено.',
       });
     }
 
     return res.status(409).json({
-      message: 'The latest attempt cannot be deleted because it is not in progress',
+      message: 'Последнюю попытку нельзя удалить, потому что она уже завершена.',
     });
   }
 

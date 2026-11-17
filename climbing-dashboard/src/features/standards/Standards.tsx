@@ -100,10 +100,7 @@ export const Standards = () => {
             axios.isAxiosError<{ message?: string }>(error) &&
             error.response?.status === 409
           ) {
-            alert(
-              error.response.data.message ??
-                'The latest attempt cannot be deleted',
-            );
+            alert(error.response.data.message ?? 'Последнюю попытку нельзя удалить.');
             return;
           }
     
@@ -111,11 +108,11 @@ export const Standards = () => {
             axios.isAxiosError(error) &&
             error.response?.status === 404
           ) {
-            alert('There are no attempts to delete');
+          alert('Нет попыток для удаления.');
             return;
           }
     
-          alert('Failed to delete the attempt. Please try again.');
+          alert('Не удалось удалить попытку. Попробуйте ещё раз.');
         });
     };
     
@@ -157,7 +154,7 @@ export const Standards = () => {
       currentAttempt.value.trim() === '' ||
       !Number.isFinite(value)
     ) {
-      alert('Please enter a valid number');
+      alert('Введите корректное число.');
       return;
     }
   
@@ -196,12 +193,12 @@ export const Standards = () => {
       ) {
         alert(
           error.response?.data?.message ??
-            'Failed to save the standard. Please try again.',
+            'Не удалось сохранить норматив. Попробуйте ещё раз.',
         );
         return;
       }
   
-      alert('An unexpected error occurred');
+      alert('Произошла непредвиденная ошибка.');
     }
   };
 
@@ -214,7 +211,7 @@ export const Standards = () => {
     if (!latestAttempt || latestAttempt.status !== 'inProgress') return;
 
     if (Object.keys(latestAttempt.values).length === 0) {
-      alert('Add at least one standard value before completing the attempt.');
+      alert('Укажите хотя бы одно значение норматива перед завершением попытки.');
       return;
     }
 
@@ -226,11 +223,11 @@ export const Standards = () => {
       setIsCompleteConfirmOpen(false);
     } catch (error: unknown) {
       if (axios.isAxiosError<{ message?: string }>(error)) {
-        alert(error.response?.data?.message ?? 'Failed to complete the attempt. Please try again.');
+        alert(error.response?.data?.message ?? 'Не удалось завершить попытку. Попробуйте ещё раз.');
         return;
       }
 
-      alert('An unexpected error occurred');
+      alert('Произошла непредвиденная ошибка.');
     }
   };
   
@@ -251,12 +248,12 @@ export const Standards = () => {
                 onClick={addAttempt}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add attempt
+                Добавить попытку
               </button>
             ) : (
               <p className="text-sm text-gray-500">
-                Next attempt available on{" "}
-                {nextAvailableDate?.toLocaleDateString("en-GB")}
+                Следующую попытку можно добавить после{" "}
+                {nextAvailableDate?.toLocaleDateString("ru-RU")}
               </p>
             )
           ) : null}
@@ -267,7 +264,7 @@ export const Standards = () => {
             onClick={removeAttempt}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Remove last attempt
+            Удалить последнюю попытку
           </button>
         )}
         {latestAttempt?.status === 'inProgress' && !draftAttempt && (
@@ -275,11 +272,11 @@ export const Standards = () => {
             className="min-h-11 w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-md flex items-center justify-center cursor-pointer"
             onClick={() => setIsCompleteConfirmOpen(true)}
           >
-            Complete attempt
+            Завершить попытку
           </button>
         )}
         </div>    
-        <div className="w-fit max-w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800" role="region" aria-label="Standards attempts" tabIndex={0}>
+        <div className="w-fit max-w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800" role="region" aria-label="Попытки по нормативам" tabIndex={0}>
         <table className="w-max border-collapse text-sm">
           <colgroup>
             <col className="w-px" />
@@ -298,7 +295,7 @@ export const Standards = () => {
                 >
                   <div>{formatMonthYear(attempt.date)}</div>
                   <div className={`mt-1 text-xs font-normal ${attempt.status === 'inProgress' ? 'text-amber-600' : 'text-gray-500'}`}>
-                    {attempt.status === 'inProgress' ? 'In progress' : 'Completed'}
+                    {attempt.status === 'inProgress' ? 'В процессе' : 'Завершена'}
                   </div>
                 </th>
               ))}
@@ -317,7 +314,7 @@ export const Standards = () => {
                     key={attempt.id}
                     className={`min-w-24 border border-gray-200 p-3 text-center dark:border-gray-800 ${attempt.status === 'inProgress' ? 'cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-900' : ''}`}
                     onClick={() => {editAttempt(attempt, standard.id)}}
-                    aria-label={`${standard.name}: ${attempt.values[standard.id] ?? 'no value'}, ${attempt.status === 'inProgress' ? 'edit value' : 'completed'}`}
+                    aria-label={`${standard.name}: ${attempt.values[standard.id] ?? 'нет значения'}, ${attempt.status === 'inProgress' ? 'изменить значение' : 'завершена'}`}
                     tabIndex={attempt.status === 'inProgress' ? 0 : undefined}
                     onKeyDown={(event) => {
                       if (attempt.status === 'inProgress' && (event.key === 'Enter' || event.key === ' ')) {
@@ -339,7 +336,7 @@ export const Standards = () => {
             <input 
               type="text"
               inputMode={['sec', 'rep'].includes(standards.find((standard) => standard.id === currentAttempt?.standardId)?.unit ?? '') ? 'numeric' : 'decimal'}
-              placeholder="Value" 
+              placeholder="Значение" 
               className="border p-2 rounded" 
               ref={inputRef}
               value={currentAttempt?.value ?? ""}
@@ -347,30 +344,30 @@ export const Standards = () => {
             <button 
               className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center justify-center cursor-pointer" 
               onClick={saveStandardAttempt}>
-              Save
+              Сохранить
             </button>
           </div>
         </BottomSheet>
         <BottomSheet
           isOpen={isCompleteConfirmOpen}
           onClose={() => setIsCompleteConfirmOpen(false)}
-          title="Complete attempt?"
+          title="Завершить попытку?"
         >
           <p className="text-sm text-gray-600">
-            You will no longer be able to edit or delete this attempt.
+            После этого попытку нельзя будет изменить или удалить.
           </p>
           <div className="flex gap-2">
             <button
               className="border px-4 py-2 rounded-md flex-1 cursor-pointer"
               onClick={() => setIsCompleteConfirmOpen(false)}
             >
-              Cancel
+              Отмена
             </button>
             <button
               className="bg-green-600 text-white px-4 py-2 rounded-md flex-1 cursor-pointer"
               onClick={completeAttempt}
             >
-              Complete
+              Завершить
             </button>
           </div>
         </BottomSheet>

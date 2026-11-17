@@ -158,12 +158,12 @@ function storageFactor(unit: string): number {
 }
 
 function toStorageValue(value: number, unit: string): number {
-  if (!Number.isFinite(value)) throw new Error('Standard value must be finite');
+  if (!Number.isFinite(value)) throw new Error('Введите корректное числовое значение.');
   const scaled = value * storageFactor(unit);
   const rounded = Math.round(scaled);
-  if (Math.abs(scaled - rounded) > 1e-8) throw new Error('Value has more precision than the stored unit supports');
+  if (Math.abs(scaled - rounded) > 1e-8) throw new Error('Слишком много знаков после запятой для этого норматива.');
   if ((unit === 'sec' || unit === 'rep') && !Number.isInteger(value)) {
-    throw new Error('Seconds and repetitions must be whole numbers');
+    throw new Error('Для секунд и повторений укажите целое число.');
   }
   return rounded;
 }
